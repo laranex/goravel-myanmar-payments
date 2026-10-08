@@ -1,0 +1,69 @@
+name: Bug Report
+description: Report something that is not working as expected.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please complete the fields below so we can reproduce the issue quickly.
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Package Version
+      description: Provide the module version that you are using (see `go list -m github.com/laranex/goravel-myanmar-payments/v4`).
+      placeholder: v4.0.0
+    validations:
+      required: true
+
+  - type: input
+    id: goravel-version
+    attributes:
+      label: Goravel Version
+      description: Provide the Goravel framework version that you are using (see `go list -m github.com/goravel/framework`).
+      placeholder: v1.18.0
+    validations:
+      required: true
+
+  - type: input
+    id: go-version
+    attributes:
+      label: Go Version
+      description: Provide the Go version that you are using (`go version`).
+      placeholder: go1.25.0
+    validations:
+      required: true
+
+  - type: input
+    id: gateway
+    attributes:
+      label: Gateway
+      description: Which gateway is affected, and sandbox or production?
+      placeholder: KBZ Pay (sandbox)
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Provide a clear description of the issue you are facing, including the gateway call, the error and the expected result. Never paste credentials or secrets.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps To Reproduce
+      description: Provide detailed steps to reproduce the issue. A minimal reproduction repository is helpful when possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Add any other context that might help diagnose the issue.
+    validations:
+      required: false

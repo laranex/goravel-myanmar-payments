@@ -1,0 +1,6 @@
+/coverage.out
+*.test
+.DS_Store
+/.idea
+/go.work
+/go.work.sum
