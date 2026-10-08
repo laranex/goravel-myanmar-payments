@@ -35,6 +35,16 @@ go work init .
 go work edit -replace=github.com/laranex/go-myanmar-payments/v4=../go-myanmar-payments
 ```
 
+## Continuous integration
+
+`laranex/go-myanmar-payments` is a private repository and `v4.0.0` is not tagged yet, so the `tests` workflow clones it into `../go-myanmar-payments` (branch `dev`, falling back to `main`) and points the module at it with `go mod edit -replace` (not committed) before building. The workflow needs a repository (or organization) secret:
+
+| Secret | Value |
+| --- | --- |
+| `LARANEX_PACKAGES_TOKEN` | A fine-grained personal access token (or GitHub App token) with **Contents: Read-only** access to `laranex/go-myanmar-payments`. |
+
+Without the secret the clone step fails with an explanatory error. Pull requests from forks do not receive repository secrets, so their CI runs fail at that step; a maintainer re-runs them from a branch in this repository.
+
 ## Lint
 
 Format and vet your code:

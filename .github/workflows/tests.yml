@@ -39,6 +39,20 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
 
+      - name: Checkout laranex/go-myanmar-payments
+        env:
+          LARANEX_PACKAGES_TOKEN: ${{ secrets.LARANEX_PACKAGES_TOKEN }}
+        run: |
+          if [ -z "$LARANEX_PACKAGES_TOKEN" ]; then
+            echo "::error title=Missing LARANEX_PACKAGES_TOKEN::laranex/go-myanmar-payments is private and v4.0.0 is not tagged yet. Add a LARANEX_PACKAGES_TOKEN secret with read access to it (see .github/CONTRIBUTING.md); forked pull requests do not receive secrets."
+            exit 1
+          fi
+          repo="https://x-access-token:${LARANEX_PACKAGES_TOKEN}@github.com/laranex/go-myanmar-payments.git"
+          git clone --depth 1 --branch dev "$repo" ../go-myanmar-payments \
+            || git clone --depth 1 --branch main "$repo" ../go-myanmar-payments
+          # Build against the checkout; this go.mod change is never committed.
+          go mod edit -replace github.com/laranex/go-myanmar-payments/v4=../go-myanmar-payments
+
       - name: Format
         run: test -z "$(gofmt -l .)"
 
