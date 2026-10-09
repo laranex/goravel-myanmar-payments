@@ -141,3 +141,14 @@ func TestEnvKeysMatchThePublishedConfig(t *testing.T) {
 
 	assert.Equal(t, envKeys, found)
 }
+
+// TestPublicNames pins the names and defaults the documentation lists.
+func TestPublicNames(t *testing.T) {
+	assert.Equal(t, "laranex.myanmar_payments", Binding)
+	assert.Equal(t, "github.com/laranex/goravel-myanmar-payments/v4", PackageName)
+	assert.Equal(t, "myanmar_payments", ConfigKey)
+	assert.Equal(t, "myanmar-payments.form", FormRouteName)
+	assert.Equal(t, "myanmar-payments/form", DefaultFormRoutePath)
+	assert.Equal(t, 30*time.Minute, DefaultFormRouteTTL)
+	assert.Equal(t, 30*time.Second, DefaultHTTPTimeout)
+}
