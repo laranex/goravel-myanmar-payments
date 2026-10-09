@@ -116,18 +116,19 @@ func (c *PaymentController) KbzCallback(ctx http.Context) http.Response {
 
 ## Test your app
 
-- gateway HTTP calls go through Goravel's HTTP client, so fake them by URL on the `client.Factory` (`facades.Http()`; if your app's `facades.Http()` returns `client.Request`, use `facades.App().MakeHttp()`):
+- gateway HTTP calls go through Goravel's HTTP client, so fake them by URL on the `client.Factory` from `facades.App().MakeHttp()` (the generated `facades.Http()` returns a `client.Request`, which cannot fake):
 
 ```go
-facades.Http().Fake(map[string]any{
-	"http://api-uat.kbzpay.com/payment/gateway/uat/precreate": facades.Http().Response().Json(200, map[string]any{
+fake := facades.App().MakeHttp()
+fake.Fake(map[string]any{
+	"http://api-uat.kbzpay.com/payment/gateway/uat/precreate": fake.Response().Json(200, map[string]any{
 		"Response": map[string]any{"result": "SUCCESS", "code": "0", "prepay_id": "prepay-1"},
 	}),
 }).PreventStrayRequests()
-defer facades.Http().Reset()
+defer fake.Reset()
 ```
 
-- assert with `facades.Http().AssertSent(func(r client.Request) bool { ... })`
+- assert with `fake.AssertSent(func(r client.Request) bool { ... })`
 - test callbacks by posting a correctly signed payload to your route; `kbzpay.NewSigner(appKey).Sign(fields)` signs KBZ Pay fields
 - CyberSource signs forms locally and makes no HTTP calls
 
