@@ -111,7 +111,7 @@ func (c *PaymentController) KbzCallback(ctx http.Context) http.Response {
 
 - recommended for production: store each verified callback in your own table, acknowledge at once and process it once in a queued job with retries; the docs page https://laranex.vercel.app/goravel-myanmar-payments/webhooks has copy-pasteable migration, model, controller and job code (the package itself stores nothing)
 - register callback routes as `POST` without CSRF or auth middleware; gateways retry until acknowledged, so make fulfillment idempotent
-- `callback.Status` is gateway-independent (`myanmarpayments.StatusSuccessful`, `StatusPending`, `StatusFailed`, `StatusCancelled`, `StatusExpired`, `StatusUnknown`); `GatewayStatus` and `Raw` keep the gateway's values
+- `callback.Status` is gateway-independent (`myanmarpayments.StatusSuccessful`, `StatusPending`, `StatusFailed`, `StatusCanceled`, `StatusExpired`, `StatusUnknown`); `GatewayStatus` and `Raw` keep the gateway's values
 - `Status(ctx, ...)` on KBZ Pay, AYA Pay and Yoma MMQR returns a `*myanmarpayments.PaymentStatusResult` for polling
 
 ## Test your app
