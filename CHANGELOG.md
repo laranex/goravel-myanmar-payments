@@ -15,3 +15,6 @@ Initial release, the Goravel counterpart of `laranex/laravel-myanmar-payments`, 
 - The auto-submit form route (`myanmar_payments.form_route`, default `GET /myanmar-payments/form`) and `AutoSubmitURL(form)` for AYA Pay and CyberSource: the signed form travels in an encrypted (APP_KEY), expiring link.
 - `setup` program for `./artisan package:install github.com/laranex/goravel-myanmar-payments/v4`.
 - Agent skill in `skills/goravel-myanmar-payments`; install it with `npx skills add laranex/goravel-myanmar-payments`.
+
+### Changed since the pre-releases
+- Built on a go-myanmar-payments version where `myanmarpayments.StatusCancelled` (`"cancelled"`) is renamed to `StatusCanceled` (`"canceled"`); update code or stored statuses from `v4.0.0-alpha.1`.
