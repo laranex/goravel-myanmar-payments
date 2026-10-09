@@ -35,37 +35,12 @@ func newCallbackServer(t *testing.T) *callbackServer {
 	manager := newManager(t, config, nil, nil)
 	server := &callbackServer{testServer: newTestServer(config)}
 
-	verify := func(gateway string, request *myanmarpayments.CallbackRequest) (*myanmarpayments.PaymentCallback, error) {
-		switch gateway {
-		case "kbzpay":
-			g, err := manager.KbzPay()
-			require.NoError(t, err)
-			return g.HandleCallback(request)
-		case "wave-money":
-			g, err := manager.WaveMoney()
-			require.NoError(t, err)
-			return g.HandleCallback(request)
-		case "aya-pay":
-			g, err := manager.AyaPay()
-			require.NoError(t, err)
-			return g.HandleCallback(request)
-		case "yoma-mmqr":
-			g, err := manager.YomaMmqr()
-			require.NoError(t, err)
-			return g.HandleCallback(request)
-		default:
-			g, err := manager.CyberSource()
-			require.NoError(t, err)
-			return g.HandleCallback(request)
-		}
-	}
-
 	server.router.Post("/callback/{gateway}", func(ctx contractshttp.Context) contractshttp.Response {
 		request, err := CallbackRequestFromContext(ctx)
 		require.NoError(t, err)
 		server.requests = append(server.requests, request)
 
-		callback, err := verify(ctx.Request().Route("gateway"), request)
+		callback, err := manager.HandleCallback(ctx.Request().Route("gateway"), request)
 		if err != nil {
 			return ctx.Response().String(nethttp.StatusBadRequest, "invalid signature")
 		}
@@ -172,7 +147,7 @@ func TestCallbackRoundTripThroughAGoravelRoute(t *testing.T) {
 		status      myanmarpayments.PaymentStatus
 		ackBody     string
 	}{
-		{"kbz pay json", "kbzpay", "application/json", func(t *testing.T) string { return kbzCallbackBody(t, "PAY_SUCCESS") }, "ORDER_1", myanmarpayments.StatusSuccessful, "success"},
+		{"kbz pay json", "kbz-pay", "application/json", func(t *testing.T) string { return kbzCallbackBody(t, "PAY_SUCCESS") }, "ORDER_1", myanmarpayments.StatusSuccessful, "success"},
 		{"wave money json", "wave-money", "application/json", waveCallbackBody, "100", myanmarpayments.StatusSuccessful, ""},
 		{"aya pay form", "aya-pay", "application/x-www-form-urlencoded", func(*testing.T) string { return ayaSignedValues("00").Encode() }, "ORD123456", myanmarpayments.StatusSuccessful, ""},
 		{"aya pay json", "aya-pay", "application/json", func(t *testing.T) string {
@@ -229,7 +204,7 @@ func TestTamperedCallbacksAreRejected(t *testing.T) {
 	tests := map[string]struct {
 		gateway, contentType, body string
 	}{
-		"kbz pay":      {"kbzpay", "application/json", strings.Replace(kbzCallbackBody(t, "PAY_SUCCESS"), `"total_amount":"1000"`, `"total_amount":"1"`, 1)},
+		"kbz pay":      {"kbz-pay", "application/json", strings.Replace(kbzCallbackBody(t, "PAY_SUCCESS"), `"total_amount":"1000"`, `"total_amount":"1"`, 1)},
 		"wave money":   {"wave-money", "application/json", strings.Replace(waveCallbackBody(t), `"amount":"1000"`, `"amount":"1"`, 1)},
 		"aya pay":      {"aya-pay", "application/x-www-form-urlencoded", url.Values{"payload": ayaSignedValues("00")["payload"], "checkSum": {"bad"}}.Encode()},
 		"yoma mmqr":    {"yoma-mmqr", "application/json", strings.Replace(yomaCallbackBody(t), "SUCCESS", "FAILED", 1)},

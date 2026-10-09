@@ -12,6 +12,7 @@ Initial release, the Goravel counterpart of `laranex/laravel-myanmar-payments`, 
 - `HTTPClient`: gateway calls go through Goravel's HTTP client, so `facades.Http().Fake()` and `AssertSent` work for them.
 - `TokenCache`: Yoma MMQR access tokens live in a Goravel cache store and are shared between processes.
 - `CallbackRequestFromContext(ctx)` and `Acknowledge(ctx, callback)` for gateway callbacks in Goravel handlers.
+- `Manager.Gateway(name)` and `Manager.HandleCallback(name, request)` resolve a gateway by its callback route name (`GatewayKbzPay` = `"kbz-pay"`, `"wave-money"`, `"aya-pay"`, `"yoma-mmqr"`, `"cyber-source"`, all listed by `GatewayNames()`), so one route can serve every gateway, like laravel-myanmar-payments and nestjs-myanmar-payments; an unknown name returns `ErrUnknownGateway`.
 - The auto-submit form route (`myanmar_payments.form_route`, default `GET /myanmar-payments/form`) and `AutoSubmitURL(form)` for AYA Pay and CyberSource: the signed form travels in an encrypted (APP_KEY), expiring link.
 - `setup` program for `./artisan package:install github.com/laranex/goravel-myanmar-payments/v4`.
 - Agent skill in `skills/goravel-myanmar-payments`; install it with `npx skills add laranex/goravel-myanmar-payments`.

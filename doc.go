@@ -15,4 +15,9 @@
 //	request, err := payments.CallbackRequestFromContext(ctx)
 //	callback, err := kbz.HandleCallback(request)
 //	return payments.Acknowledge(ctx, callback)
+//
+// One route can serve every gateway by name ("kbz-pay", "wave-money", ...):
+//
+//	callback, err := paymentsfacades.MyanmarPayments().
+//		HandleCallback(ctx.Request().Route("gateway"), request)
 package payments
