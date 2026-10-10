@@ -4,7 +4,7 @@
 [![Tests](https://github.com/laranex/goravel-myanmar-payments/actions/workflows/tests.yml/badge.svg)](https://github.com/laranex/goravel-myanmar-payments/actions/workflows/tests.yml)
 [![License](https://img.shields.io/github/license/laranex/goravel-myanmar-payments.svg?style=flat-square)](LICENSE.md)
 
-Goravel integration for Myanmar payment gateways: KBZ Pay, Wave Money, AYA Pay, Yoma MMQR and CyberSource. Built on Go Myanmar Payments. Service provider, facade and config file, callback helpers, an auto-submit form route and HTTP fakes in tests. Built for humans and AI agents.
+Goravel integration for Myanmar payment gateways: KBZ Pay, Wave Money, AYA Pay, Yoma MMQR and CyberSource. Built on Go Myanmar Payments. Facade and config, verified callbacks and test fakes. Built for humans and AI agents.
 
 ## Documentation
 
