@@ -24,18 +24,20 @@ Requires Go 1.25+ and Goravel 1.18+. `package:install` registers `&payments.Serv
 
 ## Configure
 
-Set only the env keys of the gateways you use. Every gateway runs against its sandbox until `<PREFIX>_SANDBOX=false`.
+Set the env keys of the gateways you use. Every setting of a gateway you use is required; there are no defaults. Every gateway calls its production endpoints: to test against UAT or go through a proxy, set the URL overrides (`KBZ_PAY_BASE_URL`, `KBZ_PAY_PWA_BASE_REDIRECT_URL`, `WAVE_MONEY_BASE_URL`, `WAVE_MONEY_AUTHENTICATE_URL`, `AYA_PAY_BASE_URL`, `YOMA_MMQR_BASE_URL`, `CYBER_SOURCE_BASE_URL`) to the UAT URLs the docs list.
 
-- KBZ Pay: `KBZ_PAY_APP_ID`, `KBZ_PAY_APP_KEY`, `KBZ_PAY_MERCHANT_CODE`, `KBZ_PAY_SANDBOX`
-- Wave Money: `WAVE_MONEY_MERCHANT_ID`, `WAVE_MONEY_SECRET_KEY`, `WAVE_MONEY_MERCHANT_NAME` (defaults to `APP_NAME`), `WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS`, `WAVE_MONEY_SANDBOX`
-- AYA Pay: `AYA_PAY_APP_KEY`, `AYA_PAY_APP_SECRET`, `AYA_PAY_SANDBOX` (`AYA_PGW_*` also read)
-- Yoma MMQR: `YOMA_MMQR_MERCHANT_ID`, `YOMA_MMQR_CLIENT_ID`, `YOMA_MMQR_CLIENT_SECRET`, `YOMA_MMQR_WEBHOOK_HASHKEY`, optional `YOMA_MMQR_WEBHOOK_SECRET`, `YOMA_MMQR_SANDBOX`
-- CyberSource: `CYBER_SOURCE_PROFILE_ID`, `CYBER_SOURCE_ACCESS_KEY`, `CYBER_SOURCE_SECRET_KEY`, `CYBER_SOURCE_SANDBOX`
-- Shared: `MYANMAR_PAYMENTS_HTTP_TIMEOUT` (seconds, default 30), `MYANMAR_PAYMENTS_HTTP_CLIENT` (an `http.clients` name, default client when empty), `MYANMAR_PAYMENTS_CACHE_STORE` (store for the Yoma access token, default store when empty)
+- KBZ Pay: `KBZ_PAY_APP_ID`, `KBZ_PAY_APP_KEY`, `KBZ_PAY_MERCHANT_CODE`
+- Wave Money: `WAVE_MONEY_MERCHANT_ID`, `WAVE_MONEY_SECRET_KEY`, `WAVE_MONEY_MERCHANT_NAME`, `WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS`
+- AYA Pay: `AYA_PAY_APP_KEY`, `AYA_PAY_APP_SECRET` (`AYA_PGW_*` also read)
+- Yoma MMQR: `YOMA_MMQR_MERCHANT_ID`, `YOMA_MMQR_CLIENT_ID`, `YOMA_MMQR_CLIENT_SECRET`, `YOMA_MMQR_WEBHOOK_HASHKEY`, `YOMA_MMQR_API_VERSION`, optional `YOMA_MMQR_WEBHOOK_SECRET`
+- CyberSource: `CYBER_SOURCE_PROFILE_ID`, `CYBER_SOURCE_ACCESS_KEY`, `CYBER_SOURCE_SECRET_KEY`
+- HTTP timeout in seconds, required by KBZ Pay, Wave Money, AYA Pay and Yoma MMQR: `MYANMAR_PAYMENTS_HTTP_TIMEOUT`
+- Form link lifetime in minutes, required to create an auto-submit form link: `MYANMAR_PAYMENTS_FORM_TTL_MINUTES`
+- Optional: `MYANMAR_PAYMENTS_HTTP_CLIENT` (an `http.clients` name, default client when empty), `MYANMAR_PAYMENTS_CACHE_STORE` (store for the Yoma access token, default store when empty)
 
 Edit `config/myanmar_payments.go` only to change it, for example the auto-submit form route (`form_route.enabled`, `path`, `middleware`, `ttl_minutes`, `base_url`). Without `package:install`, publish it with `./artisan vendor:publish --package=github.com/laranex/goravel-myanmar-payments/v4`.
 
-An unconfigured gateway returns a `*myanmarpayments.ConfigurationError` naming the missing key when first requested, not at boot.
+A gateway with a missing setting returns a `*myanmarpayments.ConfigurationError` naming the key (`The kbz_pay configuration is missing [timeout_in_seconds].`) when first requested, not at boot. A time setting that is not a whole number greater than 0 returns the same error with `Invalid` set.
 
 ## Use
 
@@ -79,7 +81,7 @@ return ctx.Response().Redirect(http.StatusFound, payment.URL)
 
 ### Form payments (AYA Pay, CyberSource)
 
-`AyaPay().Initiate()` and `CyberSource().Initiate()` return a `*myanmarpayments.FormPayment` the customer's browser must POST. Redirect to `payments.AutoSubmitURL(form)`: a link to the package's `GET myanmar-payments/form` route, encrypted with `APP_KEY` and valid for `form_route.ttl_minutes` (30); a tampered or expired link answers 410. Or send `form.HTML()` yourself.
+`AyaPay().Initiate()` and `CyberSource().Initiate()` return a `*myanmarpayments.FormPayment` the customer's browser must POST. Redirect to `payments.AutoSubmitURL(form)`: a link to the package's `GET myanmar-payments/form` route, encrypted with `APP_KEY` and valid for `form_route.ttl_minutes` (`MYANMAR_PAYMENTS_FORM_TTL_MINUTES`, required: missing returns `The form_route configuration is missing [ttl_minutes].`); a tampered or expired link answers 410. Or send `form.HTML()` yourself.
 
 AYA Pay needs a channel: list them with `aya.Services(ctx)`, then:
 
@@ -107,6 +109,8 @@ link, err := payments.AutoSubmitURL(form)
 // handle err
 return ctx.Response().Redirect(http.StatusFound, link)
 ```
+
+CyberSource's `cybersource.PaymentData` also needs `Currency` (e.g. `"MMK"`), `TransactionType` (e.g. `cybersource.Sale`) and `Locale` (e.g. `"en-us"`); there are no defaults.
 
 `AutoSubmitURL` returns `payments.ErrFormRouteDisabled` when the route is off and `payments.ErrCryptNotAvailable` without the crypt facade.
 
@@ -157,7 +161,7 @@ func KbzCallback(ctx http.Context) http.Response {
 ```go
 fake := facades.App().MakeHttp()
 fake.Fake(map[string]any{
-	"http://api-uat.kbzpay.com/payment/gateway/uat/precreate": fake.Response().Json(200, map[string]any{
+	"https://api.kbzpay.com/payment/gateway/precreate": fake.Response().Json(200, map[string]any{
 		"Response": map[string]any{"result": "SUCCESS", "code": "0", "prepay_id": "PREPAY1"},
 	}),
 }).PreventStrayRequests()

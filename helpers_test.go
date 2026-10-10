@@ -27,12 +27,12 @@ const testAppKey = "abcdefghijklmnopqrstuvwxyz123456"
 // gatewayEnv lists every variable a gateway reads, so tests start from a clean environment.
 var gatewayEnv = []string{
 	"APP_NAME", "APP_URL",
-	"KBZ_PAY_SANDBOX", "KBZ_PAY_APP_ID", "KBZ_PAY_APP_KEY", "KBZ_PAY_MERCHANT_CODE", "KBZ_PAY_BASE_URL", "KBZ_PAY_PWA_BASE_REDIRECT_URL",
-	"WAVE_MONEY_SANDBOX", "WAVE_MONEY_MERCHANT_ID", "WAVE_MONEY_SECRET_KEY", "WAVE_MONEY_MERCHANT_NAME", "WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS", "WAVE_MONEY_BASE_URL", "WAVE_MONEY_AUTHENTICATE_URL",
-	"AYA_PAY_SANDBOX", "AYA_PAY_APP_KEY", "AYA_PAY_APP_SECRET", "AYA_PAY_BASE_URL", "AYA_PGW_APP_KEY", "AYA_PGW_APP_SECRET", "AYA_PGW_BASE_URL",
-	"YOMA_MMQR_SANDBOX", "YOMA_MMQR_MERCHANT_ID", "YOMA_MMQR_CLIENT_ID", "YOMA_MMQR_CLIENT_SECRET", "YOMA_MMQR_WEBHOOK_HASHKEY", "YOMA_MMQR_WEBHOOK_SECRET", "YOMA_MMQR_BASE_URL", "YOMA_MMQR_API_VERSION",
-	"CYBER_SOURCE_SANDBOX", "CYBER_SOURCE_PROFILE_ID", "CYBER_SOURCE_ACCESS_KEY", "CYBER_SOURCE_SECRET_KEY", "CYBER_SOURCE_BASE_URL",
-	"MYANMAR_PAYMENTS_HTTP_CLIENT", "MYANMAR_PAYMENTS_HTTP_TIMEOUT", "MYANMAR_PAYMENTS_CACHE_STORE",
+	"KBZ_PAY_APP_ID", "KBZ_PAY_APP_KEY", "KBZ_PAY_MERCHANT_CODE", "KBZ_PAY_BASE_URL", "KBZ_PAY_PWA_BASE_REDIRECT_URL",
+	"WAVE_MONEY_MERCHANT_ID", "WAVE_MONEY_SECRET_KEY", "WAVE_MONEY_MERCHANT_NAME", "WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS", "WAVE_MONEY_BASE_URL", "WAVE_MONEY_AUTHENTICATE_URL",
+	"AYA_PAY_APP_KEY", "AYA_PAY_APP_SECRET", "AYA_PAY_BASE_URL", "AYA_PGW_APP_KEY", "AYA_PGW_APP_SECRET", "AYA_PGW_BASE_URL",
+	"YOMA_MMQR_MERCHANT_ID", "YOMA_MMQR_CLIENT_ID", "YOMA_MMQR_CLIENT_SECRET", "YOMA_MMQR_WEBHOOK_HASHKEY", "YOMA_MMQR_WEBHOOK_SECRET", "YOMA_MMQR_BASE_URL", "YOMA_MMQR_API_VERSION",
+	"CYBER_SOURCE_PROFILE_ID", "CYBER_SOURCE_ACCESS_KEY", "CYBER_SOURCE_SECRET_KEY", "CYBER_SOURCE_BASE_URL",
+	"MYANMAR_PAYMENTS_HTTP_CLIENT", "MYANMAR_PAYMENTS_HTTP_TIMEOUT", "MYANMAR_PAYMENTS_CACHE_STORE", "MYANMAR_PAYMENTS_FORM_TTL_MINUTES",
 }
 
 // newConfig returns a real Goravel config with app.key set and every gateway variable unset.
@@ -57,11 +57,12 @@ func newConfig(t *testing.T, sections map[string]any) contractsconfig.Config {
 // credentials is a published myanmar_payments section with every gateway configured.
 func credentials(baseURL string) map[string]any {
 	return map[string]any{
-		"kbz_pay":      map[string]any{"sandbox": true, "app_id": "kp-app", "app_key": "kbz-secret", "merchant_code": "200001", "api_url": baseURL + "/kbz", "pwa_url": ""},
-		"wave_money":   map[string]any{"sandbox": true, "merchant_id": "wave-merchant", "secret_key": "wave-secret", "merchant_name": "Shop", "time_to_live_in_seconds": 300, "base_url": baseURL + "/wave"},
-		"aya_pay":      map[string]any{"sandbox": true, "app_key": "aya-key", "app_secret": "aya-secret", "base_url": baseURL + "/aya"},
-		"yoma_mmqr":    map[string]any{"sandbox": true, "merchant_id": "yoma-merchant", "client_id": "yoma-client", "client_secret": "yoma-secret", "webhook_hashkey": "yoma-hash", "webhook_secret": "", "base_url": baseURL + "/yoma", "api_version": "v1rc"},
-		"cyber_source": map[string]any{"sandbox": true, "profile_id": "profile", "access_key": "access", "secret_key": "cyber-secret", "base_url": ""},
+		"kbz_pay":      map[string]any{"app_id": "kp-app", "app_key": "kbz-secret", "merchant_code": "200001", "api_url": baseURL + "/kbz", "pwa_url": ""},
+		"wave_money":   map[string]any{"merchant_id": "wave-merchant", "secret_key": "wave-secret", "merchant_name": "Shop", "time_to_live_in_seconds": 300, "base_url": baseURL + "/wave"},
+		"aya_pay":      map[string]any{"app_key": "aya-key", "app_secret": "aya-secret", "base_url": baseURL + "/aya"},
+		"yoma_mmqr":    map[string]any{"merchant_id": "yoma-merchant", "client_id": "yoma-client", "client_secret": "yoma-secret", "webhook_hashkey": "yoma-hash", "webhook_secret": "", "base_url": baseURL + "/yoma", "api_version": "v1rc"},
+		"cyber_source": map[string]any{"profile_id": "profile", "access_key": "access", "secret_key": "cyber-secret", "base_url": ""},
+		"http":         map[string]any{"timeout": 30},
 		"form_route":   map[string]any{"enabled": true, "path": "myanmar-payments/form", "ttl_minutes": 30, "base_url": "https://shop.test"},
 	}
 }
