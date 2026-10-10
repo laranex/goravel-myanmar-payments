@@ -18,4 +18,5 @@ Initial release, the Goravel counterpart of `laranex/laravel-myanmar-payments`, 
 - Agent skill in `skills/goravel-myanmar-payments`; install it with `npx skills add laranex/goravel-myanmar-payments`.
 
 ### Changed since the pre-releases
+- Requires go-myanmar-payments `v4.0.0-alpha.3` or later, which aligns its behavior with the PHP, Node and Python SDKs. Through it: KBZ Pay `PaymentData.TimeoutMinutes` is a `*int` (nil means KBZ's default, 0 is rejected), `(*kbzpay.Gateway).Signer()`, `Amount.Equals`/`WholePart`, the `PaymentError` interface and `PaymentStatuses()`, CyberSource forms with `Enctype` `application/x-www-form-urlencoded`, nested callback values failing verification, and the shared Yoma MMQR token cache key `myanmar-payments.yoma-mmqr.token.<sha256(baseUrl|clientId)>` with one shared token request.
 - Built on a go-myanmar-payments version where `myanmarpayments.StatusCancelled` (`"cancelled"`) is renamed to `StatusCanceled` (`"canceled"`); update code or stored statuses from `v4.0.0-alpha.1`.

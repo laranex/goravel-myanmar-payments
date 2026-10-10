@@ -43,7 +43,7 @@ Every gateway is reached through `paymentsfacades.MyanmarPayments()` (`github.co
 
 ### Amounts
 
-Pass a `myanmarpayments.Amount` (`myanmarpayments.Kyat(10000)`, `myanmarpayments.ParseAmount("10000.50")`), never a `float64`. Only KBZ Pay (up to 2 decimals) and CyberSource accept decimals. Invalid data returns a `*myanmarpayments.InvalidPaymentDataError`; read the messages from its `Errors`.
+Pass a `myanmarpayments.Amount` (`myanmarpayments.Kyat(10000)`, `myanmarpayments.ParseAmount("10000.50")`), never a `float64`. Only KBZ Pay (up to 2 decimals) and CyberSource accept decimals. Invalid data returns a `*myanmarpayments.InvalidPaymentDataError`; read the messages from its `Errors`. Compare a gateway's amount by value with `amount.Equals(callback.Amount)`.
 
 ### Start a payment
 
@@ -132,7 +132,7 @@ func KbzCallback(ctx http.Context) http.Response {
 		return ctx.Response().String(http.StatusBadRequest, "invalid signature")
 	}
 	if callback.IsSuccessful() {
-		// compare callback.Amount with the order, then fulfill callback.OrderID once
+		// check order.Amount.Equals(callback.Amount), then fulfill once
 	}
 	return payments.Acknowledge(ctx, callback) // KBZ Pay: plain "success"
 }
@@ -146,8 +146,9 @@ func KbzCallback(ctx http.Context) http.Response {
 ### Check status and handle errors
 
 - `Status(ctx, orderID)` on KBZ Pay and AYA Pay and `Status(ctx, reference)` on Yoma MMQR return a `*myanmarpayments.PaymentStatusResult` with `Status` and `IsSuccessful()`. Wave Money and CyberSource have no status API.
-- Statuses are `myanmarpayments.PaymentStatus` values: `StatusSuccessful`, `StatusPending`, `StatusFailed`, `StatusCanceled`, `StatusExpired`, `StatusUnknown`.
-- Gateway errors return a `*myanmarpayments.APIError` (`GatewayCode`, `GatewayMessage`, `HTTPStatus`, `Raw`); match every package error with `errors.As`.
+- Statuses are `myanmarpayments.PaymentStatus` values: `StatusSuccessful`, `StatusPending`, `StatusFailed`, `StatusCanceled`, `StatusExpired`, `StatusUnknown`. `myanmarpayments.PaymentStatuses()` lists them.
+- Gateway errors return a `*myanmarpayments.APIError` (`GatewayCode`, `GatewayMessage`, `HTTPStatus`, `Raw`); match every package error with `errors.As`. All SDK errors implement `myanmarpayments.PaymentError`.
+- For a KBZ Pay call the package does not wrap, sign the fields with `kbz.Signer()`.
 
 ## Test your app
 

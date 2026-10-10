@@ -92,6 +92,7 @@ func TestResolveFormPaymentKeepsEveryField(t *testing.T) {
 		ReturnURL: "https://shop.test/done", CancelURL: "https://shop.test/cancel",
 	})
 	require.NoError(t, err)
+	assert.Equal(t, "application/x-www-form-urlencoded", form.Enctype)
 
 	link, err := server.manager.AutoSubmitURL(form)
 	require.NoError(t, err)
@@ -101,6 +102,7 @@ func TestResolveFormPaymentKeepsEveryField(t *testing.T) {
 	resolved, err := server.manager.ResolveFormPayment(parsed.Query().Get("payload"))
 	require.NoError(t, err)
 	assert.Equal(t, form, resolved)
+	assert.Contains(t, readBody(t, server.open(t, link)), `enctype="application/x-www-form-urlencoded"`)
 }
 
 func TestExpiredFormLinksAreGone(t *testing.T) {
