@@ -89,6 +89,7 @@ func TestResolveFormPaymentKeepsEveryField(t *testing.T) {
 	require.NoError(t, err)
 	form, err := cyber.Initiate(cybersource.PaymentData{
 		OrderID: "ORD-1", Amount: myanmarpayments.Kyat(1000), CallbackURL: "https://shop.test/callback",
+		Currency: "MMK", TransactionType: cybersource.Sale, Locale: "en-us",
 		ReturnURL: "https://shop.test/done", CancelURL: "https://shop.test/cancel",
 	})
 	require.NoError(t, err)
@@ -172,6 +173,16 @@ func TestAutoSubmitURLErrors(t *testing.T) {
 		assert.ErrorIs(t, err, ErrCryptNotAvailable)
 		_, err = manager.ResolveFormPayment("payload")
 		assert.ErrorIs(t, err, ErrInvalidFormLink)
+	})
+	t.Run("missing ttl", func(t *testing.T) {
+		server := newFormServer(t, map[string]any{"ttl_minutes": ""})
+		_, err := server.manager.AutoSubmitURL(ayaForm(t, server.manager))
+		assert.EqualError(t, err, "myanmarpayments: The form_route configuration is missing [ttl_minutes].")
+	})
+	t.Run("invalid ttl", func(t *testing.T) {
+		server := newFormServer(t, map[string]any{"ttl_minutes": "0"})
+		_, err := server.manager.AutoSubmitURL(ayaForm(t, server.manager))
+		assert.EqualError(t, err, "myanmarpayments: The form_route configuration [ttl_minutes] must be a whole number greater than 0.")
 	})
 	t.Run("nil form", func(t *testing.T) {
 		server := newFormServer(t, nil)

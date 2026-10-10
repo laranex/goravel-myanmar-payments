@@ -39,8 +39,8 @@ body:
     id: gateway
     attributes:
       label: Gateway
-      description: Which gateway is affected, and sandbox or production?
-      placeholder: KBZ Pay (sandbox)
+      description: Which gateway is affected, and production or UAT?
+      placeholder: KBZ Pay (UAT)
     validations:
       required: false
 

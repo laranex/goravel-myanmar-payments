@@ -36,7 +36,7 @@ func (r *ServiceProvider) Relationship() binding.Relationship {
 
 // Register binds the *Manager as a singleton. Its gateways send HTTP requests through
 // Goravel's HTTP client (myanmar_payments.http.client, default client when empty) with
-// myanmar_payments.http.timeout, keep Yoma MMQR tokens in the cache store
+// myanmar_payments.http.timeout (required by every gateway that calls an API), keep Yoma MMQR tokens in the cache store
 // myanmar_payments.cache_store (default store when empty) and sign form links with
 // the crypt facade.
 func (r *ServiceProvider) Register(app foundation.Application) {

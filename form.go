@@ -42,7 +42,8 @@ type formField struct {
 // AutoSubmitURL returns a link to the form route that renders form and posts it to the
 // gateway from the customer's browser, so a handler can simply redirect to it. The
 // form is encrypted with Goravel's crypt facade (APP_KEY) and the link expires after
-// myanmar_payments.form_route.ttl_minutes (30 by default).
+// myanmar_payments.form_route.ttl_minutes, which is required: a missing or invalid
+// value returns a *myanmarpayments.ConfigurationError.
 //
 // AYA Pay and CyberSource return a *myanmarpayments.FormPayment from Initiate; the Go
 // SDK has no auto-submit URL of its own, so this package adds it.
@@ -57,12 +58,17 @@ func (m *Manager) AutoSubmitURL(form *myanmarpayments.FormPayment) (string, erro
 		return "", ErrCryptNotAvailable
 	}
 
+	ttl, err := m.settings.FormRouteTTL()
+	if err != nil {
+		return "", err
+	}
+
 	link := formLink{
 		OrderID:   form.OrderID,
 		Action:    form.Action,
 		Fields:    make([]formField, len(form.Fields)),
 		Enctype:   form.Enctype,
-		ExpiresAt: m.now().Add(m.settings.FormRouteTTL()).Unix(),
+		ExpiresAt: m.now().Add(ttl).Unix(),
 	}
 	for i, field := range form.Fields {
 		link.Fields[i] = formField{Name: field.Name, Value: field.Value}

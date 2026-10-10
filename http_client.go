@@ -20,8 +20,8 @@ type HTTPClient struct {
 }
 
 // NewHTTPClient returns an HTTPClient that uses factory's client named name (empty
-// means the default client) with timeout. A nil factory sends requests with a plain
-// *http.Client.
+// means the default client) with timeout; a zero timeout keeps the Goravel client's
+// own. A nil factory sends requests with a plain *http.Client.
 func NewHTTPClient(factory client.Factory, name string, timeout time.Duration) *HTTPClient {
 	return &HTTPClient{factory: factory, name: name, timeout: timeout, fallback: &http.Client{Timeout: timeout}}
 }
