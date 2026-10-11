@@ -59,11 +59,11 @@ func init() {
 		//
 		// Gateway calls go through Goravel's HTTP client, so facades.Http().Fake()
 		// intercepts them in tests. "client" names an entry of http.clients
-		// (empty means the default client). "timeout" is in seconds and is
-		// required by KBZ Pay, Wave Money, AYA Pay and Yoma MMQR.
+		// (empty means the default client). "timeout" is the seconds KBZ Pay,
+		// Wave Money, AYA Pay and Yoma MMQR calls may take (30 when empty).
 		"http": map[string]any{
 			"client":  config.Env("MYANMAR_PAYMENTS_HTTP_CLIENT", ""),
-			"timeout": config.Env("MYANMAR_PAYMENTS_HTTP_TIMEOUT", ""),
+			"timeout": config.Env("MYANMAR_PAYMENTS_HTTP_TIMEOUT", 30),
 		},
 
 		// Cache

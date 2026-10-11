@@ -20,6 +20,11 @@ const ConfigKey = "myanmar_payments"
 // published.
 const DefaultFormRoutePath = "myanmar-payments/form"
 
+// DefaultHTTPTimeoutSeconds is the timeout, in seconds, of every gateway call when
+// myanmar_payments.http.timeout (MYANMAR_PAYMENTS_HTTP_TIMEOUT) is missing or blank.
+// It is the SDK's myanmarpayments.DefaultTimeoutSeconds.
+const DefaultHTTPTimeoutSeconds = myanmarpayments.DefaultTimeoutSeconds
+
 // envKeys maps every environment variable the SDK's ConfigFromEnv functions read to
 // the config key that holds it, so a published config file wins over the
 // environment and an unpublished one falls back to the SDK's own variable names.
@@ -67,8 +72,18 @@ type settings struct {
 }
 
 // Getenv returns the lookup function handed to the SDK's ConfigFromEnv functions: the
-// published config value when it is set, otherwise the environment variable.
+// published config value when it is set, otherwise the environment variable. A
+// missing or blank HTTP timeout reads as DefaultHTTPTimeoutSeconds.
 func (s settings) Getenv(name string) string {
+	value := s.lookup(name)
+	if value == "" && name == "MYANMAR_PAYMENTS_HTTP_TIMEOUT" {
+		return strconv.Itoa(DefaultHTTPTimeoutSeconds)
+	}
+
+	return value
+}
+
+func (s settings) lookup(name string) string {
 	if key, ok := envKeys[name]; ok {
 		if value := s.string(ConfigKey + "." + key); value != "" {
 			return value
@@ -92,10 +107,10 @@ func (s settings) string(key string) string {
 // HTTPClientName is the Goravel HTTP client the gateways use; empty means the default client.
 func (s settings) HTTPClientName() string { return s.Getenv("MYANMAR_PAYMENTS_HTTP_CLIENT") }
 
-// HTTPTimeout is the timeout of every gateway call, or 0 when
-// myanmar_payments.http.timeout is missing or not a whole number greater than 0.
-// There is no default: the SDK then returns a *myanmarpayments.ConfigurationError
-// for timeout_in_seconds when a gateway that calls an API is built.
+// HTTPTimeout is the timeout of every gateway call: myanmar_payments.http.timeout,
+// DefaultHTTPTimeoutSeconds when it is missing or blank, or 0 when it is not a whole
+// number greater than 0 (the SDK then returns a *myanmarpayments.ConfigurationError
+// for timeout_in_seconds, with Invalid set, when a gateway that calls an API is built).
 func (s settings) HTTPTimeout() time.Duration {
 	seconds, ok := wholeNumber(s.Getenv("MYANMAR_PAYMENTS_HTTP_TIMEOUT"))
 	if !ok {

@@ -96,15 +96,14 @@ func TestEverySettingIsRequired(t *testing.T) {
 	}{
 		{"kbz_pay", "kbz_pay", "app_id", "app_id", "", false},
 		{"kbz_pay", "kbz_pay", "merchant_code", "merchant_code", "", false},
-		{"kbz_pay", "http", "timeout", "timeout_in_seconds", "", false},
 		{"kbz_pay", "http", "timeout", "timeout_in_seconds", 0, true},
 		{"kbz_pay", "http", "timeout", "timeout_in_seconds", "five", true},
 		{"wave_money", "wave_money", "merchant_name", "merchant_name", "", false},
 		{"wave_money", "wave_money", "time_to_live_in_seconds", "time_to_live_in_seconds", "", false},
 		{"wave_money", "wave_money", "time_to_live_in_seconds", "time_to_live_in_seconds", "-5", true},
-		{"wave_money", "http", "timeout", "timeout_in_seconds", "", false},
+		{"wave_money", "http", "timeout", "timeout_in_seconds", "-30", true},
 		{"aya_pay", "aya_pay", "app_secret", "app_secret", "", false},
-		{"aya_pay", "http", "timeout", "timeout_in_seconds", "", false},
+		{"aya_pay", "http", "timeout", "timeout_in_seconds", "2.5", true},
 		{"yoma_mmqr", "yoma_mmqr", "webhook_hashkey", "webhook_hashkey", "", false},
 		{"yoma_mmqr", "yoma_mmqr", "api_version", "api_version", "", false},
 		{"yoma_mmqr", "http", "timeout", "timeout_in_seconds", "1.5", true},
@@ -127,6 +126,27 @@ func TestEverySettingIsRequired(t *testing.T) {
 			require.True(t, errors.As(builds[tt.gateway](), &configurationError))
 			assert.Equal(t, myanmarpayments.ConfigurationError{Gateway: tt.gateway, Key: tt.errorKey, Invalid: tt.invalid}, *configurationError)
 		})
+	}
+}
+
+func TestTheHTTPTimeoutDefaultsTo30Seconds(t *testing.T) {
+	for _, value := range []any{"", "   ", nil} {
+		section := credentials("https://gateway.test")
+		section["http"] = map[string]any{"timeout": value}
+		manager := newManager(t, newConfig(t, map[string]any{ConfigKey: section}), nil, nil)
+
+		kbz, err := manager.KbzPay()
+		require.NoError(t, err)
+		assert.Equal(t, 30, kbz.Config().TimeoutSeconds, value)
+		wave, err := manager.WaveMoney()
+		require.NoError(t, err)
+		assert.Equal(t, 30, wave.Config().TimeoutSeconds, value)
+		aya, err := manager.AyaPay()
+		require.NoError(t, err)
+		assert.Equal(t, 30, aya.Config().TimeoutSeconds, value)
+		yoma, err := manager.YomaMmqr()
+		require.NoError(t, err)
+		assert.Equal(t, 30, yoma.Config().TimeoutSeconds, value)
 	}
 }
 

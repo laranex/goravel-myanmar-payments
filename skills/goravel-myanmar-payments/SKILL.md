@@ -24,20 +24,19 @@ Requires Go 1.25+ and Goravel 1.18+. `package:install` registers `&payments.Serv
 
 ## Configure
 
-Set the env keys of the gateways you use. Every setting of a gateway you use is required; there are no defaults. Every gateway calls its production endpoints: to test against UAT or go through a proxy, set the URL overrides (`KBZ_PAY_BASE_URL`, `KBZ_PAY_PWA_BASE_REDIRECT_URL`, `WAVE_MONEY_BASE_URL`, `WAVE_MONEY_AUTHENTICATE_URL`, `AYA_PAY_BASE_URL`, `YOMA_MMQR_BASE_URL`, `CYBER_SOURCE_BASE_URL`) to the UAT URLs the docs list.
+Set the env keys of the gateways you use. Every setting of a gateway you use is required except the HTTP timeout (30 seconds by default); there are no other defaults. Every gateway calls its production endpoints: to test against UAT or go through a proxy, set the URL overrides (`KBZ_PAY_BASE_URL`, `KBZ_PAY_PWA_BASE_REDIRECT_URL`, `WAVE_MONEY_BASE_URL`, `WAVE_MONEY_AUTHENTICATE_URL`, `AYA_PAY_BASE_URL`, `YOMA_MMQR_BASE_URL`, `CYBER_SOURCE_BASE_URL`) to the UAT URLs the docs list.
 
 - KBZ Pay: `KBZ_PAY_APP_ID`, `KBZ_PAY_APP_KEY`, `KBZ_PAY_MERCHANT_CODE`
 - Wave Money: `WAVE_MONEY_MERCHANT_ID`, `WAVE_MONEY_SECRET_KEY`, `WAVE_MONEY_MERCHANT_NAME`, `WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS`
 - AYA Pay: `AYA_PAY_APP_KEY`, `AYA_PAY_APP_SECRET` (`AYA_PGW_*` also read)
 - Yoma MMQR: `YOMA_MMQR_MERCHANT_ID`, `YOMA_MMQR_CLIENT_ID`, `YOMA_MMQR_CLIENT_SECRET`, `YOMA_MMQR_WEBHOOK_HASHKEY`, `YOMA_MMQR_API_VERSION`, optional `YOMA_MMQR_WEBHOOK_SECRET`
 - CyberSource: `CYBER_SOURCE_PROFILE_ID`, `CYBER_SOURCE_ACCESS_KEY`, `CYBER_SOURCE_SECRET_KEY`
-- HTTP timeout in seconds, required by KBZ Pay, Wave Money, AYA Pay and Yoma MMQR: `MYANMAR_PAYMENTS_HTTP_TIMEOUT`
 - Form link lifetime in minutes, required to create an auto-submit form link: `MYANMAR_PAYMENTS_FORM_TTL_MINUTES`
-- Optional: `MYANMAR_PAYMENTS_HTTP_CLIENT` (an `http.clients` name, default client when empty), `MYANMAR_PAYMENTS_CACHE_STORE` (store for the Yoma access token, default store when empty)
+- Optional: `MYANMAR_PAYMENTS_HTTP_TIMEOUT` (seconds before a KBZ Pay, Wave Money, AYA Pay or Yoma MMQR call gives up, 30 when empty), `MYANMAR_PAYMENTS_HTTP_CLIENT` (an `http.clients` name, default client when empty), `MYANMAR_PAYMENTS_CACHE_STORE` (store for the Yoma access token, default store when empty)
 
 Edit `config/myanmar_payments.go` only to change it, for example the auto-submit form route (`form_route.enabled`, `path`, `middleware`, `ttl_minutes`, `base_url`). Without `package:install`, publish it with `./artisan vendor:publish --package=github.com/laranex/goravel-myanmar-payments/v4`.
 
-A gateway with a missing setting returns a `*myanmarpayments.ConfigurationError` naming the key (`The kbz_pay configuration is missing [timeout_in_seconds].`) when first requested, not at boot. A time setting that is not a whole number greater than 0 returns the same error with `Invalid` set.
+A gateway with a missing setting returns a `*myanmarpayments.ConfigurationError` naming the key (`The kbz_pay configuration is missing [app_key].`) when first requested, not at boot. A time setting that is not a whole number greater than 0 returns the same error with `Invalid` set.
 
 ## Use
 

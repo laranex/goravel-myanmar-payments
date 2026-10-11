@@ -41,6 +41,17 @@ func TestGetenvFallsBackToTheEnvironment(t *testing.T) {
 	assert.Equal(t, "legacy-key", s.Getenv("AYA_PGW_APP_KEY"))
 	assert.Equal(t, "", s.Getenv("APP_NAME"), "app.name is not a fallback for any setting")
 	assert.Equal(t, "", s.Getenv("UNKNOWN_VARIABLE"))
+	assert.Equal(t, "30", s.Getenv("MYANMAR_PAYMENTS_HTTP_TIMEOUT"), "the HTTP timeout defaults to 30 seconds")
+}
+
+func TestGetenvDefaultsABlankHTTPTimeout(t *testing.T) {
+	for _, value := range []any{"", "   ", nil} {
+		config := newConfig(t, map[string]any{ConfigKey: map[string]any{"http": map[string]any{"timeout": value}}})
+		t.Setenv("MYANMAR_PAYMENTS_HTTP_TIMEOUT", "  ")
+		s := settings{config: config}
+		assert.Equal(t, "30", s.Getenv("MYANMAR_PAYMENTS_HTTP_TIMEOUT"), value)
+		assert.Equal(t, DefaultHTTPTimeoutSeconds*time.Second, s.HTTPTimeout(), value)
+	}
 }
 
 func TestGetenvFallsBackWhenAPublishedValueIsEmpty(t *testing.T) {
@@ -54,7 +65,7 @@ func TestHTTPAndCacheSettings(t *testing.T) {
 	t.Run("defaults", func(t *testing.T) {
 		s := settings{config: newConfig(t, nil)}
 		assert.Equal(t, "", s.HTTPClientName())
-		assert.Equal(t, time.Duration(0), s.HTTPTimeout(), "no default timeout")
+		assert.Equal(t, 30*time.Second, s.HTTPTimeout(), "the default timeout")
 		assert.Equal(t, "", s.CacheStore())
 	})
 	t.Run("config", func(t *testing.T) {
