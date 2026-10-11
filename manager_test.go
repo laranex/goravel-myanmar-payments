@@ -233,3 +233,22 @@ func TestMissingCredentialsAreNotCached(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "p", cyber.Config().ProfileID)
 }
+
+func TestKbzPayTakesTheOptionalTimeToLive(t *testing.T) {
+	section := credentials("https://gateway.test")
+	kbz, err := newManager(t, newConfig(t, map[string]any{ConfigKey: section}), nil, nil).KbzPay()
+	require.NoError(t, err)
+	assert.Equal(t, 0, kbz.Config().TimeToLiveSeconds)
+
+	section["kbz_pay"].(map[string]any)["time_to_live_in_seconds"] = "1800"
+	kbz, err = newManager(t, newConfig(t, map[string]any{ConfigKey: section}), nil, nil).KbzPay()
+	require.NoError(t, err)
+	assert.Equal(t, 1800, kbz.Config().TimeToLiveSeconds)
+
+	section["kbz_pay"].(map[string]any)["time_to_live_in_seconds"] = "90"
+	_, err = newManager(t, newConfig(t, map[string]any{ConfigKey: section}), nil, nil).KbzPay()
+	var configurationError *myanmarpayments.ConfigurationError
+	require.True(t, errors.As(err, &configurationError))
+	assert.Equal(t, "time_to_live_in_seconds", configurationError.Key)
+	assert.Contains(t, configurationError.Error(), "must be a multiple of 60 from 60 to 7200.")
+}

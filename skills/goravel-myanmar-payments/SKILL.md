@@ -26,7 +26,7 @@ Requires Go 1.25+ and Goravel 1.18+. `package:install` registers `&payments.Serv
 
 Set the env keys of the gateways you use. Every setting of a gateway you use is required except the HTTP timeout (30 seconds by default); there are no other defaults. Every gateway calls its production endpoints: to test against UAT or go through a proxy, set the URL overrides (`KBZ_PAY_BASE_URL`, `KBZ_PAY_PWA_BASE_REDIRECT_URL`, `WAVE_MONEY_BASE_URL`, `WAVE_MONEY_AUTHENTICATE_URL`, `AYA_PAY_BASE_URL`, `YOMA_MMQR_BASE_URL`, `CYBER_SOURCE_BASE_URL`) to the UAT URLs the docs list.
 
-- KBZ Pay: `KBZ_PAY_APP_ID`, `KBZ_PAY_APP_KEY`, `KBZ_PAY_MERCHANT_CODE`
+- KBZ Pay: `KBZ_PAY_APP_ID`, `KBZ_PAY_APP_KEY`, `KBZ_PAY_MERCHANT_CODE`, optional `KBZ_PAY_TIME_TO_LIVE_IN_SECONDS` (a multiple of 60 from 60 to 7200; KBZ's 7200 when unset; a payment's `TimeToLiveSeconds` overrides it)
 - Wave Money: `WAVE_MONEY_MERCHANT_ID`, `WAVE_MONEY_SECRET_KEY`, `WAVE_MONEY_MERCHANT_NAME`, `WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS`
 - AYA Pay: `AYA_PAY_APP_KEY`, `AYA_PAY_APP_SECRET` (`AYA_PGW_*` also read)
 - Yoma MMQR: `YOMA_MMQR_MERCHANT_ID`, `YOMA_MMQR_CLIENT_ID`, `YOMA_MMQR_CLIENT_SECRET`, `YOMA_MMQR_WEBHOOK_HASHKEY`, `YOMA_MMQR_API_VERSION`, optional `YOMA_MMQR_WEBHOOK_SECRET`

@@ -24,11 +24,12 @@ func init() {
 		// overrides. The environment variable names are the ones the Go SDK
 		// reads.
 		"kbz_pay": map[string]any{
-			"app_id":        config.Env("KBZ_PAY_APP_ID", ""),
-			"app_key":       config.Env("KBZ_PAY_APP_KEY", ""),
-			"merchant_code": config.Env("KBZ_PAY_MERCHANT_CODE", ""),
-			"api_url":       config.Env("KBZ_PAY_BASE_URL", ""),
-			"pwa_url":       config.Env("KBZ_PAY_PWA_BASE_REDIRECT_URL", ""),
+			"app_id":                  config.Env("KBZ_PAY_APP_ID", ""),
+			"app_key":                 config.Env("KBZ_PAY_APP_KEY", ""),
+			"merchant_code":           config.Env("KBZ_PAY_MERCHANT_CODE", ""),
+			"api_url":                 config.Env("KBZ_PAY_BASE_URL", ""),
+			"pwa_url":                 config.Env("KBZ_PAY_PWA_BASE_REDIRECT_URL", ""),
+			"time_to_live_in_seconds": config.Env("KBZ_PAY_TIME_TO_LIVE_IN_SECONDS", ""),
 		},
 
 		"wave_money": map[string]any{
@@ -110,6 +111,7 @@ MYANMAR_PAYMENTS_FORM_TTL_MINUTES=
 KBZ_PAY_APP_ID=
 KBZ_PAY_APP_KEY=
 KBZ_PAY_MERCHANT_CODE=
+KBZ_PAY_TIME_TO_LIVE_IN_SECONDS=
 
 WAVE_MONEY_MERCHANT_ID=
 WAVE_MONEY_SECRET_KEY=
