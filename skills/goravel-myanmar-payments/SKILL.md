@@ -74,7 +74,7 @@ if err != nil {
 return ctx.Response().Redirect(http.StatusFound, payment.URL)
 ```
 
-- `RedirectPayment` from `KbzPay().PWA()` and `WaveMoney().Initiate()`: redirect to `payment.URL`. Wave takes `&wavemoney.PaymentData{...}` and fills `MerchantReferenceID`; store it with the order.
+- `RedirectPayment` from `KbzPay().PWA()` and `WaveMoney().Initiate()`: redirect to `payment.URL`. Wave takes `&wavemoney.PaymentData{...}` and fills `MerchantReferenceID`; store it with the order. Its optional `MerchantName` (`string`, empty uses `WAVE_MONEY_MERCHANT_NAME`) and `TimeToLiveSeconds` (`*int`, nil uses `WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS`, 0 is rejected) override the configured values for that payment only.
 - `QrPayment` from `KbzPay().QR()` (encode `QRString`) and `YomaMmqr().Initiate()` (`QRImage` as base64, `QRImageDataURI("")`, `ExpiresAt`, `Reference`). Renew an expired Yoma QR with `RenewQR(ctx, orderID)`.
 - `AppPayment` from `KbzPay().App()`: return it as JSON to the mobile app.
 
