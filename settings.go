@@ -34,7 +34,7 @@ var envKeys = map[string]string{
 	"KBZ_PAY_MERCHANT_CODE":           "kbz_pay.merchant_code",
 	"KBZ_PAY_BASE_URL":                "kbz_pay.api_url",
 	"KBZ_PAY_PWA_BASE_REDIRECT_URL":   "kbz_pay.pwa_url",
-	"KBZ_PAY_TIME_TO_LIVE_IN_SECONDS": "kbz_pay.time_to_live_in_seconds",
+	"KBZ_PAY_TIME_TO_LIVE_IN_MINUTES": "kbz_pay.time_to_live_in_minutes",
 
 	"WAVE_MONEY_MERCHANT_ID":             "wave_money.merchant_id",
 	"WAVE_MONEY_SECRET_KEY":              "wave_money.secret_key",

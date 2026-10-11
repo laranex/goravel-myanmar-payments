@@ -21,7 +21,7 @@ func init() {
 			"merchant_code":           config.Env("KBZ_PAY_MERCHANT_CODE", ""),
 			"api_url":                 config.Env("KBZ_PAY_BASE_URL", ""),
 			"pwa_url":                 config.Env("KBZ_PAY_PWA_BASE_REDIRECT_URL", ""),
-			"time_to_live_in_seconds": config.Env("KBZ_PAY_TIME_TO_LIVE_IN_SECONDS", ""),
+			"time_to_live_in_minutes": config.Env("KBZ_PAY_TIME_TO_LIVE_IN_MINUTES", ""),
 		},
 
 		"wave_money": map[string]any{
