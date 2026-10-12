@@ -3,12 +3,21 @@ package payments
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	nethttp "net/http"
 	"strings"
 
 	"github.com/goravel/framework/contracts/http"
 	myanmarpayments "github.com/laranex/go-myanmar-payments/v4"
 )
+
+// MaxCallbackBodyBytes is the largest callback body CallbackRequestFromContext accepts (64 KiB).
+// Gateway callbacks are a few kilobytes at most.
+const MaxCallbackBodyBytes = 64 << 10
+
+// ErrCallbackBodyTooLarge is returned by CallbackRequestFromContext when the body is larger
+// than MaxCallbackBodyBytes.
+var ErrCallbackBodyTooLarge = fmt.Errorf("goravel-myanmar-payments: the callback body is larger than %d bytes", MaxCallbackBodyBytes)
 
 // CallbackRequestFromContext turns the current Goravel request into the request the
 // SDK verifies: the raw body, the headers and the query string.
@@ -17,19 +26,30 @@ import (
 // runs, which consumes them. In that case the body is rebuilt from the parsed form
 // fields (urlencoded, Content-Type set accordingly); the gateways that post forms
 // (AYA Pay, CyberSource) verify field values, so the result verifies the same. JSON
-// bodies (KBZ Pay, Wave Money, Yoma MMQR) are passed through byte for byte.
+// bodies (KBZ Pay, Wave Money, Yoma MMQR) are passed through byte for byte. A body (or
+// rebuilt form) larger than MaxCallbackBodyBytes returns ErrCallbackBodyTooLarge.
 func CallbackRequestFromContext(ctx http.Context) (*myanmarpayments.CallbackRequest, error) {
 	if ctx == nil || ctx.Request() == nil || ctx.Request().Origin() == nil {
 		return nil, errors.New("goravel-myanmar-payments: the context has no request")
 	}
 	origin := ctx.Request().Origin()
+	if origin.Body != nil {
+		origin.Body = nethttp.MaxBytesReader(nil, origin.Body, MaxCallbackBodyBytes)
+	}
 
 	request, err := myanmarpayments.NewCallbackRequestFromHTTP(origin)
+	var tooLarge *nethttp.MaxBytesError
+	if errors.As(err, &tooLarge) {
+		return nil, ErrCallbackBodyTooLarge
+	}
 	if err != nil {
 		return nil, err
 	}
 	if len(bytes.TrimSpace(request.Body)) == 0 && len(origin.PostForm) > 0 {
 		request.Body = []byte(origin.PostForm.Encode())
+		if len(request.Body) > MaxCallbackBodyBytes {
+			return nil, ErrCallbackBodyTooLarge
+		}
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
 

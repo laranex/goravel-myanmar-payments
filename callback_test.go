@@ -103,10 +103,10 @@ func waveCallbackBody(t *testing.T) string {
 }
 
 func ayaSignedValues(statusCode string) url.Values {
-	payload := `{"merchOrderId":"ORD123456","tranId":"TRN0001","amount":"1000","statusCode":"` + statusCode + `","dateTime":"2026-10-07 10:00:00"}`
+	payload := `{"merchOrderId":"ORD123456","tranId":"TRN0001","amount":"1000","currenyCode":"104","statusCode":"` + statusCode + `","dateTime":"2026-10-07 10:00:00"}`
 	return url.Values{
 		"payload":  {base64.StdEncoding.EncodeToString([]byte(payload))},
-		"checkSum": {hmacHex("aya-secret", "ORD123456:TRN0001:1000:"+statusCode+":2026-10-07 10:00:00")},
+		"checkSum": {hmacHex("aya-secret", "ORD123456:TRN0001:1000:104:"+statusCode+":2026-10-07 10:00:00")},
 	}
 }
 
@@ -261,4 +261,32 @@ func TestAcknowledgeWritesStatusBodyAndHeaders(t *testing.T) {
 func TestCallbackRequestFromContextWithoutARequest(t *testing.T) {
 	_, err := CallbackRequestFromContext(nil)
 	assert.ErrorContains(t, err, "no request")
+}
+
+func TestCallbackRequestCapsTheBody(t *testing.T) {
+	config := newConfig(t, map[string]any{ConfigKey: credentials("https://gateway.test")})
+	newManager(t, config, nil, nil)
+	server := newTestServer(config)
+	var errs []error
+	var bodies []int
+	server.router.Post("/callback", func(ctx contractshttp.Context) contractshttp.Response {
+		request, err := CallbackRequestFromContext(ctx)
+		errs = append(errs, err)
+		if request != nil {
+			bodies = append(bodies, len(request.Body))
+		}
+
+		return ctx.Response().String(nethttp.StatusOK, "")
+	})
+
+	jsonBody := func(size int) string { return `{"a":"` + strings.Repeat("b", size-8) + `"}` }
+	server.do(t, nethttp.MethodPost, "/callback", "application/json", jsonBody(MaxCallbackBodyBytes))
+	server.do(t, nethttp.MethodPost, "/callback", "application/json", jsonBody(MaxCallbackBodyBytes+1))
+	server.do(t, nethttp.MethodPost, "/callback", "application/x-www-form-urlencoded", "a="+strings.Repeat("b", MaxCallbackBodyBytes))
+
+	require.Len(t, errs, 3)
+	require.NoError(t, errs[0])
+	assert.Equal(t, []int{MaxCallbackBodyBytes}, bodies)
+	assert.ErrorIs(t, errs[1], ErrCallbackBodyTooLarge)
+	assert.ErrorIs(t, errs[2], ErrCallbackBodyTooLarge)
 }
