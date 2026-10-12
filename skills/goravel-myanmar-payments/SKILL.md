@@ -81,7 +81,7 @@ return ctx.Response().Redirect(http.StatusFound, payment.URL)
 
 ### Form payments (AYA Pay, CyberSource)
 
-`AyaPay().Initiate()` and `CyberSource().Initiate()` return a `*myanmarpayments.FormPayment` the customer's browser must POST. Redirect to `payments.AutoSubmitURL(form)`: a link to the package's `GET myanmar-payments/form` route, encrypted with `APP_KEY` and valid for `form_route.ttl_minutes` (`MYANMAR_PAYMENTS_FORM_TTL_MINUTES`, required: missing returns `The form_route configuration is missing [ttl_minutes].`); a tampered or expired link answers 410. Or send `form.HTML()` yourself.
+`AyaPay().Initiate()` and `CyberSource().Initiate()` return a `*myanmarpayments.FormPayment` the customer's browser must POST. Redirect to `payments.AutoSubmitURL(form)`: a link to the package's `GET myanmar-payments/form` route, encrypted with `APP_KEY` and valid for `form_route.ttl_minutes` (`MYANMAR_PAYMENTS_FORM_TTL_MINUTES`, required: missing returns `The form_route configuration is missing [ttl_minutes].`); a tampered or expired link answers 410. The page is sent with `Cache-Control: no-store` and `Referrer-Policy: strict-origin`, so the gateway never sees the encrypted link. Or send `form.HTML()` yourself.
 
 AYA Pay needs a channel: list them with `aya.Services(ctx)`, then:
 
@@ -145,6 +145,8 @@ func KbzCallback(ctx http.Context) http.Response {
 - `payments.Acknowledge(ctx, callback)` returns the reply each gateway expects so it stops retrying; with a nil callback it is an empty 200.
 - One route for every gateway: `HandleCallback(ctx.Request().Route("gateway"), request)`; an unknown name returns `payments.ErrUnknownGateway`.
 - Check AYA's browser return with `aya.VerifyRedirect(request)`; it is never proof of payment.
+- `CallbackRequestFromContext` returns `payments.ErrCallbackBodyTooLarge` for a body over `payments.MaxCallbackBodyBytes` (64 KiB).
+- Yoma MMQR callbacks sign only the order number and status and carry no amount: confirm the payment and its amount with `YomaMmqr().Status(ctx, reference)` before fulfilling.
 - For production, store the verified call, acknowledge immediately and process it once in a queued job; the docs show this flow as app code (the package stores nothing).
 
 ### Check status and handle errors
