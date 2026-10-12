@@ -146,7 +146,7 @@ func KbzCallback(ctx http.Context) http.Response {
 - One route for every gateway: `HandleCallback(ctx.Request().Route("gateway"), request)`; an unknown name returns `payments.ErrUnknownGateway`.
 - Check AYA's browser return with `aya.VerifyRedirect(request)`; it is never proof of payment.
 - `CallbackRequestFromContext` returns `payments.ErrCallbackBodyTooLarge` for a body over `payments.MaxCallbackBodyBytes` (64 KiB).
-- Yoma MMQR callbacks sign only the order number and status and carry no amount: confirm the payment and its amount with `YomaMmqr().Status(ctx, reference)` before fulfilling.
+- Yoma MMQR callbacks sign only the order number and status and carry no amount: match the order number to your stored order (its QR was generated for the stored amount) and, to confirm, call `YomaMmqr().Status(ctx, reference)` with that order's QR reference (`refLabel`). The status result has no amount either, so trust your stored amount.
 - For production, store the verified call, acknowledge immediately and process it once in a queued job; the docs show this flow as app code (the package stores nothing).
 
 ### Check status and handle errors
