@@ -75,7 +75,7 @@ func TestAutoSubmitURLRendersTheSignedForm(t *testing.T) {
 	assert.Equal(t, nethttp.StatusOK, response.StatusCode)
 	assert.Equal(t, "text/html; charset=utf-8", response.Header.Get("Content-Type"))
 	assert.Equal(t, "no-store", response.Header.Get("Cache-Control"))
-	assert.Equal(t, "no-referrer-when-downgrade", response.Header.Get("Referrer-Policy"))
+	assert.Equal(t, "strict-origin", response.Header.Get("Referrer-Policy"))
 	assert.Equal(t, form.HTML(), body, "the page is the SDK's own form HTML")
 	assert.Contains(t, body, `action="https://gateway.test/aya/v1/payment/request"`)
 	assert.Contains(t, body, `enctype="multipart/form-data"`)

@@ -125,7 +125,8 @@ func (m *Manager) ServeForm(ctx http.Context) http.Response {
 	}
 
 	ctx.Response().Header("Cache-Control", "no-store")
-	ctx.Response().Header("Referrer-Policy", "no-referrer-when-downgrade")
+	// strict-origin: the gateway sees only this site's origin, never the encrypted link.
+	ctx.Response().Header("Referrer-Policy", "strict-origin")
 
 	return ctx.Response().Data(nethttp.StatusOK, "text/html; charset=utf-8", []byte(form.HTML()))
 }
