@@ -19,7 +19,7 @@ func TestMyanmarPaymentsPanicsWithoutTheServiceProvider(t *testing.T) {
 func TestMyanmarPaymentsResolvesTheBoundManager(t *testing.T) {
 	t.Setenv("APP_KEY", "abcdefghijklmnopqrstuvwxyz123456")
 	config := frameworkconfig.NewApplication("")
-	config.Add("myanmar_payments", map[string]any{"cyber_source": map[string]any{"profile_id": "p", "access_key": "a", "secret_key": "s"}})
+	config.Add("myanmar_payments", map[string]any{"cyber_source": map[string]any{"profile_id": "p", "access_key": "a", "secret_key": "s", "base_url": "https://cyber.test"}})
 	manager, err := payments.NewManager(payments.Options{Config: config})
 	require.NoError(t, err)
 

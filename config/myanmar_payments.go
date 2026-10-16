@@ -11,10 +11,9 @@ func init() {
 		// Gateways
 		//
 		// Only the gateways you call need settings, and every setting of a
-		// gateway you call is required. Each gateway calls its production
-		// endpoints; to test against UAT or go through a proxy, set the URL
-		// overrides. The environment variable names are the ones the Go SDK
-		// reads.
+		// gateway you call is required, URLs included: set production's URLs,
+		// or the gateway's UAT URLs to test. The environment variable names
+		// are the ones the Go SDK reads.
 		"kbz_pay": map[string]any{
 			"app_id":                  config.Env("KBZ_PAY_APP_ID", ""),
 			"app_key":                 config.Env("KBZ_PAY_APP_KEY", ""),
@@ -30,6 +29,7 @@ func init() {
 			"merchant_name":           config.Env("WAVE_MONEY_MERCHANT_NAME", ""),
 			"time_to_live_in_seconds": config.Env("WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS", ""),
 			"base_url":                config.Env("WAVE_MONEY_BASE_URL", ""),
+			"base_redirect_url":       config.Env("WAVE_MONEY_BASE_REDIRECT_URL", ""),
 		},
 
 		"aya_pay": map[string]any{

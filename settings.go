@@ -41,6 +41,7 @@ var envKeys = map[string]string{
 	"WAVE_MONEY_MERCHANT_NAME":           "wave_money.merchant_name",
 	"WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS": "wave_money.time_to_live_in_seconds",
 	"WAVE_MONEY_BASE_URL":                "wave_money.base_url",
+	"WAVE_MONEY_BASE_REDIRECT_URL":       "wave_money.base_redirect_url",
 
 	"AYA_PAY_APP_KEY":    "aya_pay.app_key",
 	"AYA_PAY_APP_SECRET": "aya_pay.app_secret",

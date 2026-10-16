@@ -24,14 +24,13 @@ Requires Go 1.25+ and Goravel 1.18+. `package:install` registers `&payments.Serv
 
 ## Configure
 
-Set the env keys of the gateways you use. Every setting of a gateway you use is required except the HTTP timeout (30 seconds by default); there are no other defaults. Every gateway calls its production endpoints: to test against UAT or go through a proxy, set the URL overrides (`KBZ_PAY_BASE_URL`, `KBZ_PAY_PWA_BASE_REDIRECT_URL`, `WAVE_MONEY_BASE_URL`, `AYA_PAY_BASE_URL`, `YOMA_MMQR_BASE_URL`, `CYBER_SOURCE_BASE_URL`) to the UAT URLs the docs list.
+Set the env keys of the gateways you use. Every setting of those gateways is required and has no default, URLs included: set production's URLs, or the gateway's UAT URLs to test. Only the HTTP timeout is optional.
 
-- KBZ Pay: `KBZ_PAY_APP_ID`, `KBZ_PAY_APP_KEY`, `KBZ_PAY_MERCHANT_CODE`, optional `KBZ_PAY_TIME_TO_LIVE_IN_MINUTES` (1 to 120; a payment's `TimeToLiveMinutes` overrides it)
-- Wave Money: `WAVE_MONEY_MERCHANT_ID`, `WAVE_MONEY_SECRET_KEY`, `WAVE_MONEY_MERCHANT_NAME`, optional `WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS` (greater than 0; a payment's `TimeToLiveSeconds` overrides it)
-- A payment must get a time to live from its own `TimeToLiveMinutes` / `TimeToLiveSeconds` or from the setting; with neither, `PWA()`, `QR()`, `App()` and Wave's `Initiate()` return `*myanmarpayments.InvalidPaymentDataError` before any request.
-- AYA Pay: `AYA_PAY_APP_KEY`, `AYA_PAY_APP_SECRET` (`AYA_PGW_*` also read)
-- Yoma MMQR: `YOMA_MMQR_MERCHANT_ID`, `YOMA_MMQR_CLIENT_ID`, `YOMA_MMQR_CLIENT_SECRET`, `YOMA_MMQR_WEBHOOK_HASHKEY`, `YOMA_MMQR_API_VERSION`, optional `YOMA_MMQR_WEBHOOK_SECRET`
-- CyberSource: `CYBER_SOURCE_PROFILE_ID`, `CYBER_SOURCE_ACCESS_KEY`, `CYBER_SOURCE_SECRET_KEY`
+- KBZ Pay: `KBZ_PAY_APP_ID`, `KBZ_PAY_APP_KEY`, `KBZ_PAY_MERCHANT_CODE`, `KBZ_PAY_BASE_URL`, `KBZ_PAY_PWA_BASE_REDIRECT_URL`, `KBZ_PAY_TIME_TO_LIVE_IN_MINUTES` (1 to 120; a payment's `TimeToLiveMinutes` overrides it)
+- Wave Money: `WAVE_MONEY_MERCHANT_ID`, `WAVE_MONEY_SECRET_KEY`, `WAVE_MONEY_MERCHANT_NAME`, `WAVE_MONEY_BASE_URL` (payments are requested at its `/payment`), `WAVE_MONEY_BASE_REDIRECT_URL` (the customer is sent to its `/authenticate`), `WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS` (greater than 0; a payment's `TimeToLiveSeconds` overrides it)
+- AYA Pay: `AYA_PAY_APP_KEY`, `AYA_PAY_APP_SECRET`, `AYA_PAY_BASE_URL` (`AYA_PGW_*` also read)
+- Yoma MMQR: `YOMA_MMQR_MERCHANT_ID`, `YOMA_MMQR_CLIENT_ID`, `YOMA_MMQR_CLIENT_SECRET`, `YOMA_MMQR_WEBHOOK_HASHKEY`, `YOMA_MMQR_API_VERSION`, `YOMA_MMQR_WEBHOOK_SECRET` (every callback must carry it in `X-Webhook-Secret`), `YOMA_MMQR_BASE_URL`
+- CyberSource: `CYBER_SOURCE_PROFILE_ID`, `CYBER_SOURCE_ACCESS_KEY`, `CYBER_SOURCE_SECRET_KEY`, `CYBER_SOURCE_BASE_URL`
 - Form link lifetime in minutes, required to create an auto-submit form link: `MYANMAR_PAYMENTS_FORM_TTL_MINUTES`
 - Optional: `MYANMAR_PAYMENTS_HTTP_TIMEOUT` (seconds before a KBZ Pay, Wave Money, AYA Pay or Yoma MMQR call gives up, 30 when empty), `MYANMAR_PAYMENTS_HTTP_CLIENT` (an `http.clients` name, default client when empty), `MYANMAR_PAYMENTS_CACHE_STORE` (store for the Yoma access token, default store when empty)
 

@@ -264,7 +264,7 @@ func TestRegisteredAndPackageLevelAutoSubmitURL(t *testing.T) {
 	_, err = AutoSubmitURL(&myanmarpayments.FormPayment{})
 	assert.ErrorContains(t, err, "register &payments.ServiceProvider{}")
 
-	config := newConfig(t, map[string]any{ConfigKey: credentials("")})
+	config := newConfig(t, map[string]any{ConfigKey: credentials("https://gateway.test")})
 	manager := newManager(t, config, nil, nil)
 	app := mocksfoundation.NewApplication(t)
 	app.EXPECT().Make(Binding).Return(manager, nil).Twice()

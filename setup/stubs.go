@@ -19,10 +19,9 @@ func init() {
 		// Gateways
 		//
 		// Only the gateways you call need settings, and every setting of a
-		// gateway you call is required. Each gateway calls its production
-		// endpoints; to test against UAT or go through a proxy, set the URL
-		// overrides. The environment variable names are the ones the Go SDK
-		// reads.
+		// gateway you call is required, URLs included: set production's URLs,
+		// or the gateway's UAT URLs to test. The environment variable names
+		// are the ones the Go SDK reads.
 		"kbz_pay": map[string]any{
 			"app_id":                  config.Env("KBZ_PAY_APP_ID", ""),
 			"app_key":                 config.Env("KBZ_PAY_APP_KEY", ""),
@@ -38,6 +37,7 @@ func init() {
 			"merchant_name":           config.Env("WAVE_MONEY_MERCHANT_NAME", ""),
 			"time_to_live_in_seconds": config.Env("WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS", ""),
 			"base_url":                config.Env("WAVE_MONEY_BASE_URL", ""),
+			"base_redirect_url":       config.Env("WAVE_MONEY_BASE_REDIRECT_URL", ""),
 		},
 
 		"aya_pay": map[string]any{
@@ -99,9 +99,8 @@ func init() {
 `)
 }
 
-// envStub is appended to .env.example: every required setting, plus the
-// optional HTTP timeout (blank means 30 seconds) and Yoma MMQR webhook secret. The URL overrides are left out: every
-// gateway calls its production endpoints unless you set them.
+// envStub is appended to .env.example: every setting, all required except the
+// HTTP timeout (blank means 30 seconds).
 func envStub() string {
 	return `
 MYANMAR_PAYMENTS_HTTP_TIMEOUT=
@@ -110,15 +109,20 @@ MYANMAR_PAYMENTS_FORM_TTL_MINUTES=
 KBZ_PAY_APP_ID=
 KBZ_PAY_APP_KEY=
 KBZ_PAY_MERCHANT_CODE=
+KBZ_PAY_BASE_URL=
+KBZ_PAY_PWA_BASE_REDIRECT_URL=
 KBZ_PAY_TIME_TO_LIVE_IN_MINUTES=
 
 WAVE_MONEY_MERCHANT_ID=
 WAVE_MONEY_SECRET_KEY=
 WAVE_MONEY_MERCHANT_NAME=
 WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS=
+WAVE_MONEY_BASE_URL=
+WAVE_MONEY_BASE_REDIRECT_URL=
 
 AYA_PAY_APP_KEY=
 AYA_PAY_APP_SECRET=
+AYA_PAY_BASE_URL=
 
 YOMA_MMQR_MERCHANT_ID=
 YOMA_MMQR_CLIENT_ID=
@@ -126,9 +130,11 @@ YOMA_MMQR_CLIENT_SECRET=
 YOMA_MMQR_WEBHOOK_HASHKEY=
 YOMA_MMQR_WEBHOOK_SECRET=
 YOMA_MMQR_API_VERSION=
+YOMA_MMQR_BASE_URL=
 
 CYBER_SOURCE_PROFILE_ID=
 CYBER_SOURCE_ACCESS_KEY=
 CYBER_SOURCE_SECRET_KEY=
+CYBER_SOURCE_BASE_URL=
 `
 }

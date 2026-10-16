@@ -57,11 +57,11 @@ func newConfig(t *testing.T, sections map[string]any) contractsconfig.Config {
 // credentials is a published myanmar_payments section with every gateway configured.
 func credentials(baseURL string) map[string]any {
 	return map[string]any{
-		"kbz_pay":      map[string]any{"app_id": "kp-app", "app_key": "kbz-secret", "merchant_code": "200001", "api_url": baseURL + "/kbz", "pwa_url": "", "time_to_live_in_minutes": 30},
-		"wave_money":   map[string]any{"merchant_id": "wave-merchant", "secret_key": "wave-secret", "merchant_name": "Shop", "time_to_live_in_seconds": 300, "base_url": baseURL + "/wave"},
+		"kbz_pay":      map[string]any{"app_id": "kp-app", "app_key": "kbz-secret", "merchant_code": "200001", "api_url": baseURL + "/kbz", "pwa_url": baseURL + "/kbz-pwa/", "time_to_live_in_minutes": 30},
+		"wave_money":   map[string]any{"merchant_id": "wave-merchant", "secret_key": "wave-secret", "merchant_name": "Shop", "time_to_live_in_seconds": 300, "base_url": baseURL + "/wave", "base_redirect_url": baseURL + "/wave-pay"},
 		"aya_pay":      map[string]any{"app_key": "aya-key", "app_secret": "aya-secret", "base_url": baseURL + "/aya"},
-		"yoma_mmqr":    map[string]any{"merchant_id": "yoma-merchant", "client_id": "yoma-client", "client_secret": "yoma-secret", "webhook_hashkey": "yoma-hash", "webhook_secret": "", "base_url": baseURL + "/yoma", "api_version": "v1rc"},
-		"cyber_source": map[string]any{"profile_id": "profile", "access_key": "access", "secret_key": "cyber-secret", "base_url": ""},
+		"yoma_mmqr":    map[string]any{"merchant_id": "yoma-merchant", "client_id": "yoma-client", "client_secret": "yoma-secret", "webhook_hashkey": "yoma-hash", "webhook_secret": "yoma-webhook", "base_url": baseURL + "/yoma", "api_version": "v1rc"},
+		"cyber_source": map[string]any{"profile_id": "profile", "access_key": "access", "secret_key": "cyber-secret", "base_url": baseURL + "/cyber"},
 		"http":         map[string]any{"timeout": 30},
 		"form_route":   map[string]any{"enabled": true, "path": "myanmar-payments/form", "ttl_minutes": 30, "base_url": "https://shop.test"},
 	}
@@ -139,6 +139,9 @@ func (s *testServer) do(t *testing.T, method, target, contentType, body string) 
 	if contentType != "" {
 		request.Header.Set("Content-Type", contentType)
 	}
+	// Yoma MMQR callbacks carry the webhook secret from credentials; the other
+	// gateways ignore it.
+	request.Header.Set("X-Webhook-Secret", "yoma-webhook")
 	recorder := httptest.NewRecorder()
 	s.engine.ServeHTTP(recorder, request)
 

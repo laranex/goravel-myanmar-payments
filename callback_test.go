@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"mime/multipart"
 	nethttp "net/http"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
@@ -216,6 +217,24 @@ func TestTamperedCallbacksAreRejected(t *testing.T) {
 			response := server.do(t, nethttp.MethodPost, "/callback/"+tt.gateway, tt.contentType, tt.body)
 
 			assert.Equal(t, nethttp.StatusBadRequest, response.StatusCode)
+			assert.Empty(t, server.received)
+		})
+	}
+}
+
+func TestYomaCallbacksWithoutTheWebhookSecretAreRejected(t *testing.T) {
+	for name, secret := range map[string]string{"missing": "", "wrong": "other-secret"} {
+		t.Run(name, func(t *testing.T) {
+			server := newCallbackServer(t)
+			request := httptest.NewRequest(nethttp.MethodPost, "/callback/yoma-mmqr", strings.NewReader(yomaCallbackBody(t)))
+			request.Header.Set("Content-Type", "application/json")
+			if secret != "" {
+				request.Header.Set("X-Webhook-Secret", secret)
+			}
+			recorder := httptest.NewRecorder()
+			server.engine.ServeHTTP(recorder, request)
+
+			assert.Equal(t, nethttp.StatusBadRequest, recorder.Code)
 			assert.Empty(t, server.received)
 		})
 	}

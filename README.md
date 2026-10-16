@@ -10,7 +10,7 @@ Goravel integration for Myanmar payment gateways: KBZ Pay, Wave Money, AYA Pay, 
 
 Every Myanmar payment gateway signs, sends and acknowledges payments its own way, with its own rules for amounts. Goravel Myanmar Payments puts KBZ Pay, Wave Money, AYA Pay, Yoma MMQR and CyberSource behind one facade. All gateway logic lives in [Go Myanmar Payments](https://laranex.vercel.app/go-myanmar-payments/introduction); this package wires it into Goravel.
 
-- **One facade, every gateway.** `paymentsfacades.MyanmarPayments()` returns a manager with `KbzPay()`, `WaveMoney()`, `AyaPay()`, `YomaMmqr()` and `CyberSource()`, configured from environment variables. Endpoints default to production.
+- **One facade, every gateway.** `paymentsfacades.MyanmarPayments()` returns a manager with `KbzPay()`, `WaveMoney()`, `AyaPay()`, `YomaMmqr()` and `CyberSource()`, configured from environment variables.
 - **One-command setup.** `package:install` registers the service provider, writes `config/myanmar_payments.go` and adds the gateway variables to `.env.example`.
 - **A typed result for each flow.** Every payment returns a `RedirectPayment`, `FormPayment`, `QrPayment` or `AppPayment`, so you always know what to do next. See [Payment Flows](https://laranex.vercel.app/goravel-myanmar-payments/payment-flows).
 - **Exact amounts.** `myanmarpayments.Amount` values, never floats, checked against each gateway's documented rules before any request is sent.
