@@ -15,10 +15,10 @@ import (
 func TestGatewayResolvesEveryName(t *testing.T) {
 	manager := newManager(t, newConfig(t, map[string]any{ConfigKey: credentials("https://gateway.test")}), nil, nil)
 
-	assert.Equal(t, []string{"kbz-pay", "wave-money", "aya-pay", "yoma-mmqr", "cyber-source"}, GatewayNames())
+	assert.Equal(t, []string{"kbz-pay", "wave-pay", "aya-pay", "yoma-mmqr", "cyber-source"}, GatewayNames())
 
 	kbz, _ := manager.KbzPay()
-	wave, _ := manager.WaveMoney()
+	wave, _ := manager.WavePay()
 	aya, _ := manager.AyaPay()
 	yoma, _ := manager.YomaMmqr()
 	cyber, _ := manager.CyberSource()
@@ -37,7 +37,7 @@ func TestGatewayRejectsAnUnknownName(t *testing.T) {
 	gateway, err := manager.Gateway("paypal")
 	assert.Nil(t, gateway)
 	require.ErrorIs(t, err, ErrUnknownGateway)
-	assert.EqualError(t, err, "goravel-myanmar-payments: unknown payment gateway [paypal]; use one of kbz-pay, wave-money, aya-pay, yoma-mmqr, cyber-source")
+	assert.EqualError(t, err, "goravel-myanmar-payments: unknown payment gateway [paypal]; use one of kbz-pay, wave-pay, aya-pay, yoma-mmqr, cyber-source")
 
 	_, err = manager.HandleCallback("paypal", &myanmarpayments.CallbackRequest{})
 	assert.ErrorIs(t, err, ErrUnknownGateway)
@@ -76,7 +76,7 @@ func TestHandleCallbackByNameFromOneRoute(t *testing.T) {
 		ack         string
 	}{
 		{GatewayKbzPay, "application/json", kbzCallbackBody(t, "PAY_SUCCESS"), "success"},
-		{GatewayWaveMoney, "application/json", waveCallbackBody(t), ""},
+		{GatewayWavePay, "application/json", waveCallbackBody(t), ""},
 		{GatewayAyaPay, "application/x-www-form-urlencoded", ayaSignedValues("00").Encode(), ""},
 		{GatewayYomaMmqr, "application/json", yomaCallbackBody(t), ""},
 		{GatewayCyberSource, "application/x-www-form-urlencoded", cyberSourceValues().Encode(), ""},
@@ -88,7 +88,7 @@ func TestHandleCallbackByNameFromOneRoute(t *testing.T) {
 	}
 
 	// A body signed for another gateway does not verify.
-	response := server.do(t, nethttp.MethodPost, "/webhooks/payments/wave-money", "application/json", yomaCallbackBody(t))
+	response := server.do(t, nethttp.MethodPost, "/webhooks/payments/wave-pay", "application/json", yomaCallbackBody(t))
 	assert.Equal(t, nethttp.StatusBadRequest, response.StatusCode)
 	assert.True(t, strings.Contains(readBody(t, response), "invalid signature"))
 }

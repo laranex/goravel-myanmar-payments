@@ -26,7 +26,7 @@ var ErrCallbackBodyTooLarge = fmt.Errorf("goravel-myanmar-payments: the callback
 // runs, which consumes them. In that case the body is rebuilt from the parsed form
 // fields (urlencoded, Content-Type set accordingly); the gateways that post forms
 // (AYA Pay, CyberSource) verify field values, so the result verifies the same. JSON
-// bodies (KBZ Pay, Wave Money, Yoma MMQR) are passed through byte for byte. A body (or
+// bodies (KBZ Pay, Wave Pay, Yoma MMQR) are passed through byte for byte. A body (or
 // rebuilt form) larger than MaxCallbackBodyBytes returns ErrCallbackBodyTooLarge.
 func CallbackRequestFromContext(ctx http.Context) (*myanmarpayments.CallbackRequest, error) {
 	if ctx == nil || ctx.Request() == nil || ctx.Request().Origin() == nil {

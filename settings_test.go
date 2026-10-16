@@ -27,7 +27,7 @@ func TestGetenvPrefersThePublishedConfig(t *testing.T) {
 	assert.Equal(t, "https://gateway.test/kbz", s.Getenv("KBZ_PAY_BASE_URL"))
 	assert.Equal(t, "30", s.Getenv("MYANMAR_PAYMENTS_HTTP_TIMEOUT"))
 	assert.Equal(t, "30", s.Getenv("MYANMAR_PAYMENTS_FORM_TTL_MINUTES"))
-	assert.Equal(t, "300", s.Getenv("WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS"))
+	assert.Equal(t, "300", s.Getenv("WAVE_PAY_TIME_TO_LIVE_IN_SECONDS"))
 }
 
 func TestGetenvFallsBackToTheEnvironment(t *testing.T) {

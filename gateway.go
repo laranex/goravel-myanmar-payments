@@ -12,7 +12,7 @@ import (
 // the {gateway} segment of one callback route that serves every gateway.
 const (
 	GatewayKbzPay      = "kbz-pay"
-	GatewayWaveMoney   = "wave-money"
+	GatewayWavePay     = "wave-pay"
 	GatewayAyaPay      = "aya-pay"
 	GatewayYomaMmqr    = "yoma-mmqr"
 	GatewayCyberSource = "cyber-source"
@@ -24,7 +24,7 @@ var ErrUnknownGateway = errors.New("goravel-myanmar-payments: unknown payment ga
 
 // GatewayNames returns every gateway name, in the order of the manager's accessors.
 func GatewayNames() []string {
-	return []string{GatewayKbzPay, GatewayWaveMoney, GatewayAyaPay, GatewayYomaMmqr, GatewayCyberSource}
+	return []string{GatewayKbzPay, GatewayWavePay, GatewayAyaPay, GatewayYomaMmqr, GatewayCyberSource}
 }
 
 // CallbackHandler is what every SDK gateway has in common: it verifies a callback
@@ -34,15 +34,15 @@ type CallbackHandler interface {
 	HandleCallback(request *myanmarpayments.CallbackRequest) (*myanmarpayments.PaymentCallback, error)
 }
 
-// Gateway returns the gateway for name (GatewayKbzPay, "wave-money", ...). An
+// Gateway returns the gateway for name (GatewayKbzPay, "wave-pay", ...). An
 // unknown name returns an error wrapping ErrUnknownGateway; a missing credential
 // returns a *myanmarpayments.ConfigurationError, as the accessors do.
 func (m *Manager) Gateway(name string) (CallbackHandler, error) {
 	switch name {
 	case GatewayKbzPay:
 		return handler(m.KbzPay())
-	case GatewayWaveMoney:
-		return handler(m.WaveMoney())
+	case GatewayWavePay:
+		return handler(m.WavePay())
 	case GatewayAyaPay:
 		return handler(m.AyaPay())
 	case GatewayYomaMmqr:

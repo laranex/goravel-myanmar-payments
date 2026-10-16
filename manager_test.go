@@ -8,7 +8,7 @@ import (
 	"github.com/laranex/go-myanmar-payments/v4/ayapay"
 	"github.com/laranex/go-myanmar-payments/v4/cybersource"
 	"github.com/laranex/go-myanmar-payments/v4/kbzpay"
-	"github.com/laranex/go-myanmar-payments/v4/wavemoney"
+	"github.com/laranex/go-myanmar-payments/v4/wavepay"
 	"github.com/laranex/go-myanmar-payments/v4/yomammqr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,9 +26,9 @@ func TestGatewaysAreBuiltFromThePublishedConfig(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, kbzpay.Config{AppID: "kp-app", AppKey: "kbz-secret", MerchantCode: "200001", TimeoutSeconds: 30, APIURL: "https://gateway.test/kbz", PWAURL: "https://gateway.test/kbz-pwa/", TimeToLiveMinutes: 30}, kbz.Config())
 
-	wave, err := manager.WaveMoney()
+	wave, err := manager.WavePay()
 	require.NoError(t, err)
-	assert.Equal(t, wavemoney.Config{MerchantID: "wave-merchant", SecretKey: "wave-secret", MerchantName: "Shop", TimeToLiveSeconds: 300, TimeoutSeconds: 30, BaseURL: "https://gateway.test/wave", BaseRedirectURL: "https://gateway.test/wave-pay"}, wave.Config())
+	assert.Equal(t, wavepay.Config{MerchantID: "wave-merchant", SecretKey: "wave-secret", MerchantName: "Shop", TimeToLiveSeconds: 300, TimeoutSeconds: 30, BaseURL: "https://gateway.test/wave", BaseRedirectURL: "https://gateway.test/wave-pay"}, wave.Config())
 
 	aya, err := manager.AyaPay()
 	require.NoError(t, err)
@@ -70,12 +70,12 @@ func TestEverySettingIsRequired(t *testing.T) {
 		{"kbz_pay", "kbz_pay", "time_to_live_in_minutes", "time_to_live_in_minutes", "", false},
 		{"kbz_pay", "http", "timeout", "timeout_in_seconds", 0, true},
 		{"kbz_pay", "http", "timeout", "timeout_in_seconds", "five", true},
-		{"wave_money", "wave_money", "merchant_name", "merchant_name", "", false},
-		{"wave_money", "wave_money", "time_to_live_in_seconds", "time_to_live_in_seconds", "", false},
-		{"wave_money", "wave_money", "time_to_live_in_seconds", "time_to_live_in_seconds", "-5", true},
-		{"wave_money", "wave_money", "base_url", "base_url", "", false},
-		{"wave_money", "wave_money", "base_redirect_url", "base_redirect_url", "", false},
-		{"wave_money", "http", "timeout", "timeout_in_seconds", "-30", true},
+		{"wave_pay", "wave_pay", "merchant_name", "merchant_name", "", false},
+		{"wave_pay", "wave_pay", "time_to_live_in_seconds", "time_to_live_in_seconds", "", false},
+		{"wave_pay", "wave_pay", "time_to_live_in_seconds", "time_to_live_in_seconds", "-5", true},
+		{"wave_pay", "wave_pay", "base_url", "base_url", "", false},
+		{"wave_pay", "wave_pay", "base_redirect_url", "base_redirect_url", "", false},
+		{"wave_pay", "http", "timeout", "timeout_in_seconds", "-30", true},
 		{"aya_pay", "aya_pay", "app_secret", "app_secret", "", false},
 		{"aya_pay", "aya_pay", "base_url", "base_url", "", false},
 		{"aya_pay", "http", "timeout", "timeout_in_seconds", "2.5", true},
@@ -95,7 +95,7 @@ func TestEverySettingIsRequired(t *testing.T) {
 
 			builds := map[string]func() error{
 				"kbz_pay":      func() error { _, err := manager.KbzPay(); return err },
-				"wave_money":   func() error { _, err := manager.WaveMoney(); return err },
+				"wave_pay":     func() error { _, err := manager.WavePay(); return err },
 				"aya_pay":      func() error { _, err := manager.AyaPay(); return err },
 				"yoma_mmqr":    func() error { _, err := manager.YomaMmqr(); return err },
 				"cyber_source": func() error { _, err := manager.CyberSource(); return err },
@@ -116,7 +116,7 @@ func TestTheHTTPTimeoutDefaultsTo30Seconds(t *testing.T) {
 		kbz, err := manager.KbzPay()
 		require.NoError(t, err)
 		assert.Equal(t, 30, kbz.Config().TimeoutSeconds, value)
-		wave, err := manager.WaveMoney()
+		wave, err := manager.WavePay()
 		require.NoError(t, err)
 		assert.Equal(t, 30, wave.Config().TimeoutSeconds, value)
 		aya, err := manager.AyaPay()
@@ -137,22 +137,22 @@ func TestCyberSourceDoesNotNeedTheHTTPTimeout(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestWaveMoneyMerchantNameDoesNotFallBackToTheAppName(t *testing.T) {
+func TestWavePayMerchantNameDoesNotFallBackToTheAppName(t *testing.T) {
 	section := credentials("https://gateway.test")
-	section["wave_money"].(map[string]any)["merchant_name"] = ""
+	section["wave_pay"].(map[string]any)["merchant_name"] = ""
 	config := newConfig(t, map[string]any{ConfigKey: section})
 	t.Setenv("APP_NAME", "Goravel")
 	manager := newManager(t, config, nil, nil)
 
-	_, err := manager.WaveMoney()
-	assert.EqualError(t, err, "myanmarpayments: The wave_money configuration is missing [merchant_name].")
+	_, err := manager.WavePay()
+	assert.EqualError(t, err, "myanmarpayments: The wave_pay configuration is missing [merchant_name].")
 }
 
 func TestGatewaysReadTheEnvironmentWithoutAPublishedConfig(t *testing.T) {
 	config := newConfig(t, nil)
 	for name, value := range map[string]string{
 		"KBZ_PAY_APP_ID": "env-app", "KBZ_PAY_APP_KEY": "env-key", "KBZ_PAY_MERCHANT_CODE": "env-merchant", "KBZ_PAY_BASE_URL": "https://kbz.test", "KBZ_PAY_PWA_BASE_REDIRECT_URL": "https://kbz.test/pwa/", "KBZ_PAY_TIME_TO_LIVE_IN_MINUTES": "45",
-		"WAVE_MONEY_MERCHANT_ID": "env-wave", "WAVE_MONEY_SECRET_KEY": "env-wave-secret", "WAVE_MONEY_MERCHANT_NAME": "Env Shop", "WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS": "120", "WAVE_MONEY_BASE_URL": "https://wave.test", "WAVE_MONEY_BASE_REDIRECT_URL": "https://wave-pay.test",
+		"WAVE_PAY_MERCHANT_ID": "env-wave", "WAVE_PAY_SECRET_KEY": "env-wave-secret", "WAVE_PAY_MERCHANT_NAME": "Env Shop", "WAVE_PAY_TIME_TO_LIVE_IN_SECONDS": "120", "WAVE_PAY_BASE_URL": "https://wave.test", "WAVE_PAY_BASE_REDIRECT_URL": "https://wave-pay.test",
 		"AYA_PAY_APP_KEY": "env-aya", "AYA_PAY_APP_SECRET": "env-aya-secret", "AYA_PAY_BASE_URL": "https://aya.test/",
 		"YOMA_MMQR_MERCHANT_ID": "y-merchant", "YOMA_MMQR_CLIENT_ID": "y-client", "YOMA_MMQR_CLIENT_SECRET": "y-secret", "YOMA_MMQR_WEBHOOK_HASHKEY": "y-hash", "YOMA_MMQR_WEBHOOK_SECRET": "y-webhook", "YOMA_MMQR_API_VERSION": "v1", "YOMA_MMQR_BASE_URL": "https://yoma.test",
 		"CYBER_SOURCE_PROFILE_ID": "c-profile", "CYBER_SOURCE_ACCESS_KEY": "c-access", "CYBER_SOURCE_SECRET_KEY": "c-secret", "CYBER_SOURCE_BASE_URL": "https://cyber.test",
@@ -166,7 +166,7 @@ func TestGatewaysReadTheEnvironmentWithoutAPublishedConfig(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, kbzpay.Config{AppID: "env-app", AppKey: "env-key", MerchantCode: "env-merchant", TimeoutSeconds: 15, APIURL: "https://kbz.test", PWAURL: "https://kbz.test/pwa/", TimeToLiveMinutes: 45}, kbz.Config())
 
-	wave, err := manager.WaveMoney()
+	wave, err := manager.WavePay()
 	require.NoError(t, err)
 	assert.Equal(t, "Env Shop", wave.Config().MerchantName)
 	assert.Equal(t, 120, wave.Config().TimeToLiveSeconds)
@@ -194,7 +194,7 @@ func TestMissingCredentialsAreNotCached(t *testing.T) {
 
 	tests := map[string]func() error{
 		"kbz_pay":      func() error { _, err := manager.KbzPay(); return err },
-		"wave_money":   func() error { _, err := manager.WaveMoney(); return err },
+		"wave_pay":     func() error { _, err := manager.WavePay(); return err },
 		"aya_pay":      func() error { _, err := manager.AyaPay(); return err },
 		"yoma_mmqr":    func() error { _, err := manager.YomaMmqr(); return err },
 		"cyber_source": func() error { _, err := manager.CyberSource(); return err },

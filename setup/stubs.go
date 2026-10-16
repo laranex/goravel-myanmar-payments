@@ -31,13 +31,13 @@ func init() {
 			"time_to_live_in_minutes": config.Env("KBZ_PAY_TIME_TO_LIVE_IN_MINUTES", ""),
 		},
 
-		"wave_money": map[string]any{
-			"merchant_id":             config.Env("WAVE_MONEY_MERCHANT_ID", ""),
-			"secret_key":              config.Env("WAVE_MONEY_SECRET_KEY", ""),
-			"merchant_name":           config.Env("WAVE_MONEY_MERCHANT_NAME", ""),
-			"time_to_live_in_seconds": config.Env("WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS", ""),
-			"base_url":                config.Env("WAVE_MONEY_BASE_URL", ""),
-			"base_redirect_url":       config.Env("WAVE_MONEY_BASE_REDIRECT_URL", ""),
+		"wave_pay": map[string]any{
+			"merchant_id":             config.Env("WAVE_PAY_MERCHANT_ID", ""),
+			"secret_key":              config.Env("WAVE_PAY_SECRET_KEY", ""),
+			"merchant_name":           config.Env("WAVE_PAY_MERCHANT_NAME", ""),
+			"time_to_live_in_seconds": config.Env("WAVE_PAY_TIME_TO_LIVE_IN_SECONDS", ""),
+			"base_url":                config.Env("WAVE_PAY_BASE_URL", ""),
+			"base_redirect_url":       config.Env("WAVE_PAY_BASE_REDIRECT_URL", ""),
 		},
 
 		"aya_pay": map[string]any{
@@ -68,7 +68,7 @@ func init() {
 		// Gateway calls go through Goravel's HTTP client, so facades.Http().Fake()
 		// intercepts them in tests. "client" names an entry of http.clients
 		// (empty means the default client). "timeout" is the seconds KBZ Pay,
-		// Wave Money, AYA Pay and Yoma MMQR calls may take (30 when empty).
+		// Wave Pay, AYA Pay and Yoma MMQR calls may take (30 when empty).
 		"http": map[string]any{
 			"client":  config.Env("MYANMAR_PAYMENTS_HTTP_CLIENT", ""),
 			"timeout": config.Env("MYANMAR_PAYMENTS_HTTP_TIMEOUT", 30),
@@ -113,12 +113,12 @@ KBZ_PAY_BASE_URL=
 KBZ_PAY_PWA_BASE_REDIRECT_URL=
 KBZ_PAY_TIME_TO_LIVE_IN_MINUTES=
 
-WAVE_MONEY_MERCHANT_ID=
-WAVE_MONEY_SECRET_KEY=
-WAVE_MONEY_MERCHANT_NAME=
-WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS=
-WAVE_MONEY_BASE_URL=
-WAVE_MONEY_BASE_REDIRECT_URL=
+WAVE_PAY_MERCHANT_ID=
+WAVE_PAY_SECRET_KEY=
+WAVE_PAY_MERCHANT_NAME=
+WAVE_PAY_TIME_TO_LIVE_IN_SECONDS=
+WAVE_PAY_BASE_URL=
+WAVE_PAY_BASE_REDIRECT_URL=
 
 AYA_PAY_APP_KEY=
 AYA_PAY_APP_SECRET=

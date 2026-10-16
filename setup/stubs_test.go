@@ -47,7 +47,7 @@ func TestEnvStubListsTheGatewayCredentials(t *testing.T) {
 	require.NoError(t, err)
 	env := envStub()
 
-	for _, match := range regexp.MustCompile(`config\.Env\("((?:(?:KBZ_PAY|WAVE_MONEY|AYA_PAY|YOMA_MMQR|CYBER_SOURCE)_(?:APP_ID|APP_KEY|APP_SECRET|MERCHANT_CODE|MERCHANT_ID|SECRET_KEY|MERCHANT_NAME|CLIENT_ID|CLIENT_SECRET|WEBHOOK_HASHKEY|WEBHOOK_SECRET|PROFILE_ID|ACCESS_KEY|TIME_TO_LIVE_IN_SECONDS|API_VERSION)|MYANMAR_PAYMENTS_(?:HTTP_TIMEOUT|FORM_TTL_MINUTES)))"`).FindAllStringSubmatch(string(published), -1) {
+	for _, match := range regexp.MustCompile(`config\.Env\("((?:(?:KBZ_PAY|WAVE_PAY|AYA_PAY|YOMA_MMQR|CYBER_SOURCE)_(?:APP_ID|APP_KEY|APP_SECRET|MERCHANT_CODE|MERCHANT_ID|SECRET_KEY|MERCHANT_NAME|CLIENT_ID|CLIENT_SECRET|WEBHOOK_HASHKEY|WEBHOOK_SECRET|PROFILE_ID|ACCESS_KEY|TIME_TO_LIVE_IN_SECONDS|API_VERSION)|MYANMAR_PAYMENTS_(?:HTTP_TIMEOUT|FORM_TTL_MINUTES)))"`).FindAllStringSubmatch(string(published), -1) {
 		assert.Contains(t, env, "\n"+match[1]+"=", match[1])
 	}
 	for _, line := range strings.Split(strings.TrimSpace(env), "\n") {

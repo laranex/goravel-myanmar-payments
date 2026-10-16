@@ -4,13 +4,13 @@
 [![Tests](https://github.com/laranex/goravel-myanmar-payments/actions/workflows/tests.yml/badge.svg)](https://github.com/laranex/goravel-myanmar-payments/actions/workflows/tests.yml)
 [![License](https://img.shields.io/github/license/laranex/goravel-myanmar-payments.svg?style=flat-square)](LICENSE.md)
 
-Goravel integration for Myanmar payment gateways: KBZ Pay, Wave Money, AYA Pay, Yoma MMQR and CyberSource. Built on Go Myanmar Payments. Facade and config, verified callbacks and test fakes. Built for humans and AI agents.
+Goravel integration for Myanmar payment gateways: KBZ Pay, Wave Pay, AYA Pay, Yoma MMQR and CyberSource. Built on Go Myanmar Payments. Facade and config, verified callbacks and test fakes. Built for humans and AI agents.
 
 ## Why Goravel Myanmar Payments
 
-Every Myanmar payment gateway signs, sends and acknowledges payments its own way, with its own rules for amounts. Goravel Myanmar Payments puts KBZ Pay, Wave Money, AYA Pay, Yoma MMQR and CyberSource behind one facade. All gateway logic lives in [Go Myanmar Payments](https://laranex.vercel.app/go-myanmar-payments/introduction); this package wires it into Goravel.
+Every Myanmar payment gateway signs, sends and acknowledges payments its own way, with its own rules for amounts. Goravel Myanmar Payments puts KBZ Pay, Wave Pay, AYA Pay, Yoma MMQR and CyberSource behind one facade. All gateway logic lives in [Go Myanmar Payments](https://laranex.vercel.app/go-myanmar-payments/introduction); this package wires it into Goravel.
 
-- **One facade, every gateway.** `paymentsfacades.MyanmarPayments()` returns a manager with `KbzPay()`, `WaveMoney()`, `AyaPay()`, `YomaMmqr()` and `CyberSource()`, configured from environment variables.
+- **One facade, every gateway.** `paymentsfacades.MyanmarPayments()` returns a manager with `KbzPay()`, `WavePay()`, `AyaPay()`, `YomaMmqr()` and `CyberSource()`, configured from environment variables.
 - **One-command setup.** `package:install` registers the service provider, writes `config/myanmar_payments.go` and adds the gateway variables to `.env.example`.
 - **A typed result for each flow.** Every payment returns a `RedirectPayment`, `FormPayment`, `QrPayment` or `AppPayment`, so you always know what to do next. See [Payment Flows](https://laranex.vercel.app/goravel-myanmar-payments/payment-flows).
 - **Exact amounts.** `myanmarpayments.Amount` values, never floats, checked against each gateway's documented rules before any request is sent.
@@ -43,7 +43,7 @@ The full documentation lives at **[laranex.vercel.app/goravel-myanmar-payments](
 - [Handling Webhooks](https://laranex.vercel.app/goravel-myanmar-payments/webhooks): the recommended verify, store, acknowledge and process-once flow
 - [Testing](https://laranex.vercel.app/goravel-myanmar-payments/testing): Goravel's HTTP client fakes, signed callbacks, callbacks you build yourself and following form links
 - [KBZ Pay](https://laranex.vercel.app/goravel-myanmar-payments/drivers/kbz-pay): PWA redirect, QR and in-app payments, status checks and callbacks
-- [Wave Money](https://laranex.vercel.app/goravel-myanmar-payments/drivers/wave-money): redirect payments with line items and callbacks
+- [Wave Pay](https://laranex.vercel.app/goravel-myanmar-payments/drivers/wave-pay): redirect payments with line items and callbacks
 - [AYA Pay](https://laranex.vercel.app/goravel-myanmar-payments/drivers/aya-pay): the AYA Payment Gateway hosted checkout, channel discovery, status checks and callbacks
 - [Yoma MMQR](https://laranex.vercel.app/goravel-myanmar-payments/drivers/yoma-mmqr): QR images, QR renewal, status checks and callbacks
 - [CyberSource](https://laranex.vercel.app/goravel-myanmar-payments/drivers/cyber-source): Secure Acceptance card payments with a signed hosted checkout form

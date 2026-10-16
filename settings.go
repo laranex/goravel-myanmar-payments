@@ -36,12 +36,12 @@ var envKeys = map[string]string{
 	"KBZ_PAY_PWA_BASE_REDIRECT_URL":   "kbz_pay.pwa_url",
 	"KBZ_PAY_TIME_TO_LIVE_IN_MINUTES": "kbz_pay.time_to_live_in_minutes",
 
-	"WAVE_MONEY_MERCHANT_ID":             "wave_money.merchant_id",
-	"WAVE_MONEY_SECRET_KEY":              "wave_money.secret_key",
-	"WAVE_MONEY_MERCHANT_NAME":           "wave_money.merchant_name",
-	"WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS": "wave_money.time_to_live_in_seconds",
-	"WAVE_MONEY_BASE_URL":                "wave_money.base_url",
-	"WAVE_MONEY_BASE_REDIRECT_URL":       "wave_money.base_redirect_url",
+	"WAVE_PAY_MERCHANT_ID":             "wave_pay.merchant_id",
+	"WAVE_PAY_SECRET_KEY":              "wave_pay.secret_key",
+	"WAVE_PAY_MERCHANT_NAME":           "wave_pay.merchant_name",
+	"WAVE_PAY_TIME_TO_LIVE_IN_SECONDS": "wave_pay.time_to_live_in_seconds",
+	"WAVE_PAY_BASE_URL":                "wave_pay.base_url",
+	"WAVE_PAY_BASE_REDIRECT_URL":       "wave_pay.base_redirect_url",
 
 	"AYA_PAY_APP_KEY":    "aya_pay.app_key",
 	"AYA_PAY_APP_SECRET": "aya_pay.app_secret",

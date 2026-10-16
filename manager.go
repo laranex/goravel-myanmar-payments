@@ -11,7 +11,7 @@ import (
 	"github.com/laranex/go-myanmar-payments/v4/ayapay"
 	"github.com/laranex/go-myanmar-payments/v4/cybersource"
 	"github.com/laranex/go-myanmar-payments/v4/kbzpay"
-	"github.com/laranex/go-myanmar-payments/v4/wavemoney"
+	"github.com/laranex/go-myanmar-payments/v4/wavepay"
 	"github.com/laranex/go-myanmar-payments/v4/yomammqr"
 )
 
@@ -42,7 +42,7 @@ type Manager struct {
 
 	mu          sync.Mutex
 	kbzPay      *kbzpay.Gateway
-	waveMoney   *wavemoney.Gateway
+	wavePay     *wavepay.Gateway
 	ayaPay      *ayapay.Gateway
 	yomaMmqr    *yomammqr.Gateway
 	cyberSource *cybersource.Gateway
@@ -75,10 +75,10 @@ func (m *Manager) KbzPay() (*kbzpay.Gateway, error) {
 	})
 }
 
-// WaveMoney returns the Wave Money gateway: Initiate and HandleCallback.
-func (m *Manager) WaveMoney() (*wavemoney.Gateway, error) {
-	return lazy(&m.mu, &m.waveMoney, func() (*wavemoney.Gateway, error) {
-		return wavemoney.New(wavemoney.ConfigFromEnv(m.settings.Getenv), m.httpClient)
+// WavePay returns the Wave Pay gateway: Initiate and HandleCallback.
+func (m *Manager) WavePay() (*wavepay.Gateway, error) {
+	return lazy(&m.mu, &m.wavePay, func() (*wavepay.Gateway, error) {
+		return wavepay.New(wavepay.ConfigFromEnv(m.settings.Getenv), m.httpClient)
 	})
 }
 

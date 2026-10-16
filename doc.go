@@ -1,5 +1,5 @@
 // Package payments is the Goravel integration of Go Myanmar Payments
-// (github.com/laranex/go-myanmar-payments/v4): KBZ Pay, Wave Money, AYA Payment
+// (github.com/laranex/go-myanmar-payments/v4): KBZ Pay, Wave Pay, AYA Payment
 // Gateway, Yoma MMQR and CyberSource Secure Acceptance.
 //
 // It adds no gateway logic of its own. The ServiceProvider builds each SDK
@@ -16,7 +16,7 @@
 //	callback, err := kbz.HandleCallback(request)
 //	return payments.Acknowledge(ctx, callback)
 //
-// One route can serve every gateway by name ("kbz-pay", "wave-money", ...):
+// One route can serve every gateway by name ("kbz-pay", "wave-pay", ...):
 //
 //	callback, err := paymentsfacades.MyanmarPayments().
 //		HandleCallback(ctx.Request().Route("gateway"), request)

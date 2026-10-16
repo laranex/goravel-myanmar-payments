@@ -149,7 +149,7 @@ func TestCallbackRoundTripThroughAGoravelRoute(t *testing.T) {
 		ackBody     string
 	}{
 		{"kbz pay json", "kbz-pay", "application/json", func(t *testing.T) string { return kbzCallbackBody(t, "PAY_SUCCESS") }, "ORDER_1", myanmarpayments.StatusSuccessful, "success"},
-		{"wave money json", "wave-money", "application/json", waveCallbackBody, "100", myanmarpayments.StatusSuccessful, ""},
+		{"wave pay json", "wave-pay", "application/json", waveCallbackBody, "100", myanmarpayments.StatusSuccessful, ""},
 		{"aya pay form", "aya-pay", "application/x-www-form-urlencoded", func(*testing.T) string { return ayaSignedValues("00").Encode() }, "ORD123456", myanmarpayments.StatusSuccessful, ""},
 		{"aya pay json", "aya-pay", "application/json", func(t *testing.T) string {
 			values := ayaSignedValues("02")
@@ -206,7 +206,7 @@ func TestTamperedCallbacksAreRejected(t *testing.T) {
 		gateway, contentType, body string
 	}{
 		"kbz pay":      {"kbz-pay", "application/json", strings.Replace(kbzCallbackBody(t, "PAY_SUCCESS"), `"total_amount":"1000"`, `"total_amount":"1"`, 1)},
-		"wave money":   {"wave-money", "application/json", strings.Replace(waveCallbackBody(t), `"amount":"1000"`, `"amount":"1"`, 1)},
+		"wave pay":     {"wave-pay", "application/json", strings.Replace(waveCallbackBody(t), `"amount":"1000"`, `"amount":"1"`, 1)},
 		"aya pay":      {"aya-pay", "application/x-www-form-urlencoded", url.Values{"payload": ayaSignedValues("00")["payload"], "checkSum": {"bad"}}.Encode()},
 		"yoma mmqr":    {"yoma-mmqr", "application/json", strings.Replace(yomaCallbackBody(t), "SUCCESS", "FAILED", 1)},
 		"cyber source": {"cyber-source", "application/x-www-form-urlencoded", strings.Replace(cyberSourceValues().Encode(), "ACCEPT", "DECLINE", 1)},

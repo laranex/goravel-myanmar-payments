@@ -1,7 +1,7 @@
 ---
 name: goravel-myanmar-payments
 description: >
-  Integrate Myanmar payment gateways (KBZ Pay, Wave Money, AYA Pay, Yoma MMQR, CyberSource) in a Goravel app with github.com/laranex/goravel-myanmar-payments/v4.
+  Integrate Myanmar payment gateways (KBZ Pay, Wave Pay, AYA Pay, Yoma MMQR, CyberSource) in a Goravel app with github.com/laranex/goravel-myanmar-payments/v4.
 license: MIT
 metadata:
   author: Nay Thu Khant
@@ -11,7 +11,7 @@ metadata:
 
 ## When to use
 
-Use this skill when a Goravel application starts a payment, handles a gateway callback or checks a payment status with KBZ Pay, Wave Money, AYA Payment Gateway, Yoma MMQR or CyberSource. Start payments and verify callbacks with the package's typed API; never build gateway signatures by hand. The package wraps the Go SDK `github.com/laranex/go-myanmar-payments/v4`: gateways, payment data, results, statuses and errors are the SDK's types.
+Use this skill when a Goravel application starts a payment, handles a gateway callback or checks a payment status with KBZ Pay, Wave Pay, AYA Payment Gateway, Yoma MMQR or CyberSource. Start payments and verify callbacks with the package's typed API; never build gateway signatures by hand. The package wraps the Go SDK `github.com/laranex/go-myanmar-payments/v4`: gateways, payment data, results, statuses and errors are the SDK's types.
 
 ## Install
 
@@ -27,12 +27,12 @@ Requires Go 1.25+ and Goravel 1.18+. `package:install` registers `&payments.Serv
 Set the env keys of the gateways you use. Every setting of those gateways is required and has no default, URLs included: set production's URLs, or the gateway's UAT URLs to test. Only the HTTP timeout has a default (30 seconds).
 
 - KBZ Pay: `KBZ_PAY_APP_ID`, `KBZ_PAY_APP_KEY`, `KBZ_PAY_MERCHANT_CODE`, `KBZ_PAY_BASE_URL`, `KBZ_PAY_PWA_BASE_REDIRECT_URL`, `KBZ_PAY_TIME_TO_LIVE_IN_MINUTES` (1 to 120; a payment's `TimeToLiveMinutes` overrides it)
-- Wave Money: `WAVE_MONEY_MERCHANT_ID`, `WAVE_MONEY_SECRET_KEY`, `WAVE_MONEY_MERCHANT_NAME`, `WAVE_MONEY_BASE_URL` (payments are requested at its `/payment`), `WAVE_MONEY_BASE_REDIRECT_URL` (the customer is sent to its `/authenticate`), `WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS` (greater than 0; a payment's `TimeToLiveSeconds` overrides it)
+- Wave Pay: `WAVE_PAY_MERCHANT_ID`, `WAVE_PAY_SECRET_KEY`, `WAVE_PAY_MERCHANT_NAME`, `WAVE_PAY_BASE_URL` (payments are requested at its `/payment`), `WAVE_PAY_BASE_REDIRECT_URL` (the customer is sent to its `/authenticate`), `WAVE_PAY_TIME_TO_LIVE_IN_SECONDS` (greater than 0; a payment's `TimeToLiveSeconds` overrides it)
 - AYA Pay: `AYA_PAY_APP_KEY`, `AYA_PAY_APP_SECRET`, `AYA_PAY_BASE_URL`
 - Yoma MMQR: `YOMA_MMQR_MERCHANT_ID`, `YOMA_MMQR_CLIENT_ID`, `YOMA_MMQR_CLIENT_SECRET`, `YOMA_MMQR_WEBHOOK_HASHKEY`, `YOMA_MMQR_API_VERSION`, `YOMA_MMQR_WEBHOOK_SECRET` (every callback must carry it in `X-Webhook-Secret`), `YOMA_MMQR_BASE_URL`
 - CyberSource: `CYBER_SOURCE_PROFILE_ID`, `CYBER_SOURCE_ACCESS_KEY`, `CYBER_SOURCE_SECRET_KEY`, `CYBER_SOURCE_BASE_URL`
 - Form link lifetime in minutes, required to create an auto-submit form link: `MYANMAR_PAYMENTS_FORM_TTL_MINUTES`
-- Optional: `MYANMAR_PAYMENTS_HTTP_TIMEOUT` (seconds before a KBZ Pay, Wave Money, AYA Pay or Yoma MMQR call gives up, 30 when empty), `MYANMAR_PAYMENTS_HTTP_CLIENT` (an `http.clients` name, default client when empty), `MYANMAR_PAYMENTS_CACHE_STORE` (store for the Yoma access token, default store when empty)
+- Optional: `MYANMAR_PAYMENTS_HTTP_TIMEOUT` (seconds before a KBZ Pay, Wave Pay, AYA Pay or Yoma MMQR call gives up, 30 when empty), `MYANMAR_PAYMENTS_HTTP_CLIENT` (an `http.clients` name, default client when empty), `MYANMAR_PAYMENTS_CACHE_STORE` (store for the Yoma access token, default store when empty)
 
 Edit `config/myanmar_payments.go` only to change it, for example the auto-submit form route (`form_route.enabled`, `path`, `middleware`, `ttl_minutes`, `base_url`). Without `package:install`, publish it with `./artisan vendor:publish --package=github.com/laranex/goravel-myanmar-payments/v4`.
 
@@ -40,7 +40,7 @@ A gateway with a missing setting returns a `*myanmarpayments.ConfigurationError`
 
 ## Use
 
-Every gateway is reached through `paymentsfacades.MyanmarPayments()` (`github.com/laranex/goravel-myanmar-payments/v4/facades`): `KbzPay()`, `WaveMoney()`, `AyaPay()`, `YomaMmqr()` and `CyberSource()` return the SDK gateway and an error, or `Gateway("kbz-pay")` by name (`payments.GatewayNames()` lists `kbz-pay`, `wave-money`, `aya-pay`, `yoma-mmqr`, `cyber-source`). Each gateway is built once and reused. Goravel's `http.Context` is a `context.Context`: pass `ctx` to calls that hit the network.
+Every gateway is reached through `paymentsfacades.MyanmarPayments()` (`github.com/laranex/goravel-myanmar-payments/v4/facades`): `KbzPay()`, `WavePay()`, `AyaPay()`, `YomaMmqr()` and `CyberSource()` return the SDK gateway and an error, or `Gateway("kbz-pay")` by name (`payments.GatewayNames()` lists `kbz-pay`, `wave-pay`, `aya-pay`, `yoma-mmqr`, `cyber-source`). Each gateway is built once and reused. Goravel's `http.Context` is a `context.Context`: pass `ctx` to calls that hit the network.
 
 ### Amounts
 
@@ -74,7 +74,7 @@ if err != nil {
 return ctx.Response().Redirect(http.StatusFound, payment.URL)
 ```
 
-- `RedirectPayment` from `KbzPay().PWA()` and `WaveMoney().Initiate()`: redirect to `payment.URL`. Wave takes `&wavemoney.PaymentData{...}` and fills `MerchantReferenceID`; store it with the order. Its optional `MerchantName` (`string`, empty uses `WAVE_MONEY_MERCHANT_NAME`) and `TimeToLiveSeconds` (`*int`, nil uses `WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS`, 0 is rejected) override the configured values for that payment only.
+- `RedirectPayment` from `KbzPay().PWA()` and `WavePay().Initiate()`: redirect to `payment.URL`. Wave takes `&wavepay.PaymentData{...}` and fills `MerchantReferenceID`; store it with the order. Its optional `MerchantName` (`string`, empty uses `WAVE_PAY_MERCHANT_NAME`) and `TimeToLiveSeconds` (`*int`, nil uses `WAVE_PAY_TIME_TO_LIVE_IN_SECONDS`, 0 is rejected) override the configured values for that payment only. Optional `AdditionalField3`, `AdditionalField4` and `AdditionalField5` (at most 50 characters each) are echoed in the callback. `OrderID` and `MerchantReferenceID` take at most 100 characters, `CallbackURL`, `ReturnURL` and `Description` at most 255.
 - `QrPayment` from `KbzPay().QR()` (encode `QRString`) and `YomaMmqr().Initiate()` (`QRImage` as base64, `QRImageDataURI("")`, `ExpiresAt`, `Reference`). Renew an expired Yoma QR with `RenewQR(ctx, orderID)`.
 - `AppPayment` from `KbzPay().App()`: return it as JSON to the mobile app.
 
@@ -150,7 +150,7 @@ func KbzCallback(ctx http.Context) http.Response {
 
 ### Check status and handle errors
 
-- `Status(ctx, orderID)` on KBZ Pay and AYA Pay and `Status(ctx, reference)` on Yoma MMQR return a `*myanmarpayments.PaymentStatusResult` with `Status` and `IsSuccessful()`. Wave Money and CyberSource have no status API.
+- `Status(ctx, orderID)` on KBZ Pay and AYA Pay and `Status(ctx, reference)` on Yoma MMQR return a `*myanmarpayments.PaymentStatusResult` with `Status` and `IsSuccessful()`. Wave Pay and CyberSource have no status API.
 - Statuses are `myanmarpayments.PaymentStatus` values: `StatusSuccessful`, `StatusPending`, `StatusFailed`, `StatusCanceled`, `StatusExpired`, `StatusUnknown`. `myanmarpayments.PaymentStatuses()` lists them.
 - Gateway errors return a `*myanmarpayments.APIError` (`GatewayCode`, `GatewayMessage`, `HTTPStatus`, `Raw`); match every package error with `errors.As`. All SDK errors implement `myanmarpayments.PaymentError`.
 - For a KBZ Pay call the package does not wrap, sign the fields with `kbz.Signer()`.

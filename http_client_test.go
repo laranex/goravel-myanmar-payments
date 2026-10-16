@@ -13,7 +13,7 @@ import (
 	myanmarpayments "github.com/laranex/go-myanmar-payments/v4"
 	"github.com/laranex/go-myanmar-payments/v4/ayapay"
 	"github.com/laranex/go-myanmar-payments/v4/kbzpay"
-	"github.com/laranex/go-myanmar-payments/v4/wavemoney"
+	"github.com/laranex/go-myanmar-payments/v4/wavepay"
 	"github.com/laranex/go-myanmar-payments/v4/yomammqr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,7 +43,7 @@ func TestKbzPayCallsGoThroughGoravelFakes(t *testing.T) {
 	assert.True(t, factory.AssertSentCount(1))
 }
 
-func TestWaveMoneyInitiateWithAFake(t *testing.T) {
+func TestWavePayInitiateWithAFake(t *testing.T) {
 	config := newConfig(t, map[string]any{ConfigKey: credentials("https://gateway.test")})
 	factory := newHTTPFactory(t, config)
 	factory.Fake(map[string]any{
@@ -51,18 +51,18 @@ func TestWaveMoneyInitiateWithAFake(t *testing.T) {
 	}).PreventStrayRequests()
 	t.Cleanup(factory.Reset)
 
-	wave, err := newManager(t, config, factory, nil).WaveMoney()
+	wave, err := newManager(t, config, factory, nil).WavePay()
 	require.NoError(t, err)
 
-	payment, err := wave.Initiate(context.Background(), &wavemoney.PaymentData{
+	payment, err := wave.Initiate(context.Background(), &wavepay.PaymentData{
 		OrderID: "100", CallbackURL: "https://shop.test/wave/callback", ReturnURL: "https://shop.test/done", Description: "Order 100",
-		Items: []wavemoney.Item{{Name: "Tea", Amount: myanmarpayments.Kyat(1000)}},
+		Items: []wavepay.Item{{Name: "Tea", Amount: myanmarpayments.Kyat(1000)}},
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "tx-9", payment.GatewayReference)
 	assert.Contains(t, payment.URL, "/authenticate?transaction_id=tx-9")
 	assert.True(t, factory.AssertSent(func(request contractsclient.Request) bool {
-		return request.Header("Content-Type") == "application/x-www-form-urlencoded" && strings.Contains(request.Body(), "order_id=100")
+		return request.Header("Content-Type") == "application/json" && strings.Contains(request.Body(), `"order_id":"100"`) && strings.Contains(request.Body(), `"currency":"MMK"`)
 	}))
 }
 
