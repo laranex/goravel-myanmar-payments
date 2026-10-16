@@ -33,9 +33,9 @@ func init() {
 		},
 
 		"aya_pay": map[string]any{
-			"app_key":    config.Env("AYA_PAY_APP_KEY", config.Env("AYA_PGW_APP_KEY", "")),
-			"app_secret": config.Env("AYA_PAY_APP_SECRET", config.Env("AYA_PGW_APP_SECRET", "")),
-			"base_url":   config.Env("AYA_PAY_BASE_URL", config.Env("AYA_PGW_BASE_URL", "")),
+			"app_key":    config.Env("AYA_PAY_APP_KEY", ""),
+			"app_secret": config.Env("AYA_PAY_APP_SECRET", ""),
+			"base_url":   config.Env("AYA_PAY_BASE_URL", ""),
 		},
 
 		"yoma_mmqr": map[string]any{

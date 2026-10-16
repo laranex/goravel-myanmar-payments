@@ -153,7 +153,7 @@ func TestGatewaysReadTheEnvironmentWithoutAPublishedConfig(t *testing.T) {
 	for name, value := range map[string]string{
 		"KBZ_PAY_APP_ID": "env-app", "KBZ_PAY_APP_KEY": "env-key", "KBZ_PAY_MERCHANT_CODE": "env-merchant", "KBZ_PAY_BASE_URL": "https://kbz.test", "KBZ_PAY_PWA_BASE_REDIRECT_URL": "https://kbz.test/pwa/", "KBZ_PAY_TIME_TO_LIVE_IN_MINUTES": "45",
 		"WAVE_MONEY_MERCHANT_ID": "env-wave", "WAVE_MONEY_SECRET_KEY": "env-wave-secret", "WAVE_MONEY_MERCHANT_NAME": "Env Shop", "WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS": "120", "WAVE_MONEY_BASE_URL": "https://wave.test", "WAVE_MONEY_BASE_REDIRECT_URL": "https://wave-pay.test",
-		"AYA_PGW_APP_KEY": "legacy-key", "AYA_PGW_APP_SECRET": "legacy-secret", "AYA_PGW_BASE_URL": "https://legacy.test/",
+		"AYA_PAY_APP_KEY": "env-aya", "AYA_PAY_APP_SECRET": "env-aya-secret", "AYA_PAY_BASE_URL": "https://aya.test/",
 		"YOMA_MMQR_MERCHANT_ID": "y-merchant", "YOMA_MMQR_CLIENT_ID": "y-client", "YOMA_MMQR_CLIENT_SECRET": "y-secret", "YOMA_MMQR_WEBHOOK_HASHKEY": "y-hash", "YOMA_MMQR_WEBHOOK_SECRET": "y-webhook", "YOMA_MMQR_API_VERSION": "v1", "YOMA_MMQR_BASE_URL": "https://yoma.test",
 		"CYBER_SOURCE_PROFILE_ID": "c-profile", "CYBER_SOURCE_ACCESS_KEY": "c-access", "CYBER_SOURCE_SECRET_KEY": "c-secret", "CYBER_SOURCE_BASE_URL": "https://cyber.test",
 		"MYANMAR_PAYMENTS_HTTP_TIMEOUT": "15",
@@ -175,8 +175,8 @@ func TestGatewaysReadTheEnvironmentWithoutAPublishedConfig(t *testing.T) {
 
 	aya, err := manager.AyaPay()
 	require.NoError(t, err)
-	assert.Equal(t, ayapay.Config{AppKey: "legacy-key", AppSecret: "legacy-secret", TimeoutSeconds: 15, BaseURL: "https://legacy.test/"}, aya.Config())
-	assert.Equal(t, "https://legacy.test", aya.Config().ResolvedBaseURL())
+	assert.Equal(t, ayapay.Config{AppKey: "env-aya", AppSecret: "env-aya-secret", TimeoutSeconds: 15, BaseURL: "https://aya.test/"}, aya.Config())
+	assert.Equal(t, "https://aya.test", aya.Config().ResolvedBaseURL())
 
 	yoma, err := manager.YomaMmqr()
 	require.NoError(t, err)

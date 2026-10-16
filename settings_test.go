@@ -37,8 +37,7 @@ func TestGetenvFallsBackToTheEnvironment(t *testing.T) {
 	s := settings{config: config}
 
 	assert.Equal(t, "from-env", s.Getenv("KBZ_PAY_APP_ID"))
-	assert.Equal(t, "", s.Getenv("AYA_PAY_APP_KEY"))
-	assert.Equal(t, "legacy-key", s.Getenv("AYA_PGW_APP_KEY"))
+	assert.Equal(t, "", s.Getenv("AYA_PAY_APP_KEY"), "the AYA_PGW_* names are not read")
 	assert.Equal(t, "", s.Getenv("APP_NAME"), "app.name is not a fallback for any setting")
 	assert.Equal(t, "", s.Getenv("UNKNOWN_VARIABLE"))
 	assert.Equal(t, "30", s.Getenv("MYANMAR_PAYMENTS_HTTP_TIMEOUT"), "the HTTP timeout defaults to 30 seconds")

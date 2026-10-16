@@ -28,7 +28,7 @@ Set the env keys of the gateways you use. Every setting of those gateways is req
 
 - KBZ Pay: `KBZ_PAY_APP_ID`, `KBZ_PAY_APP_KEY`, `KBZ_PAY_MERCHANT_CODE`, `KBZ_PAY_BASE_URL`, `KBZ_PAY_PWA_BASE_REDIRECT_URL`, `KBZ_PAY_TIME_TO_LIVE_IN_MINUTES` (1 to 120; a payment's `TimeToLiveMinutes` overrides it)
 - Wave Money: `WAVE_MONEY_MERCHANT_ID`, `WAVE_MONEY_SECRET_KEY`, `WAVE_MONEY_MERCHANT_NAME`, `WAVE_MONEY_BASE_URL` (payments are requested at its `/payment`), `WAVE_MONEY_BASE_REDIRECT_URL` (the customer is sent to its `/authenticate`), `WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS` (greater than 0; a payment's `TimeToLiveSeconds` overrides it)
-- AYA Pay: `AYA_PAY_APP_KEY`, `AYA_PAY_APP_SECRET`, `AYA_PAY_BASE_URL` (`AYA_PGW_*` also read)
+- AYA Pay: `AYA_PAY_APP_KEY`, `AYA_PAY_APP_SECRET`, `AYA_PAY_BASE_URL`
 - Yoma MMQR: `YOMA_MMQR_MERCHANT_ID`, `YOMA_MMQR_CLIENT_ID`, `YOMA_MMQR_CLIENT_SECRET`, `YOMA_MMQR_WEBHOOK_HASHKEY`, `YOMA_MMQR_API_VERSION`, `YOMA_MMQR_WEBHOOK_SECRET` (every callback must carry it in `X-Webhook-Secret`), `YOMA_MMQR_BASE_URL`
 - CyberSource: `CYBER_SOURCE_PROFILE_ID`, `CYBER_SOURCE_ACCESS_KEY`, `CYBER_SOURCE_SECRET_KEY`, `CYBER_SOURCE_BASE_URL`
 - Form link lifetime in minutes, required to create an auto-submit form link: `MYANMAR_PAYMENTS_FORM_TTL_MINUTES`
