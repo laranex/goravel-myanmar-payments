@@ -24,7 +24,7 @@ Requires Go 1.25+ and Goravel 1.18+. `package:install` registers `&payments.Serv
 
 ## Configure
 
-Set the env keys of the gateways you use. Every setting of those gateways is required and has no default, URLs included: set production's URLs, or the gateway's UAT URLs to test. Only the HTTP timeout is optional.
+Set the env keys of the gateways you use. Every setting of those gateways is required and has no default, URLs included: set production's URLs, or the gateway's UAT URLs to test. Only the HTTP timeout has a default (30 seconds).
 
 - KBZ Pay: `KBZ_PAY_APP_ID`, `KBZ_PAY_APP_KEY`, `KBZ_PAY_MERCHANT_CODE`, `KBZ_PAY_BASE_URL`, `KBZ_PAY_PWA_BASE_REDIRECT_URL`, `KBZ_PAY_TIME_TO_LIVE_IN_MINUTES` (1 to 120; a payment's `TimeToLiveMinutes` overrides it)
 - Wave Money: `WAVE_MONEY_MERCHANT_ID`, `WAVE_MONEY_SECRET_KEY`, `WAVE_MONEY_MERCHANT_NAME`, `WAVE_MONEY_BASE_URL` (payments are requested at its `/payment`), `WAVE_MONEY_BASE_REDIRECT_URL` (the customer is sent to its `/authenticate`), `WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS` (greater than 0; a payment's `TimeToLiveSeconds` overrides it)
@@ -157,12 +157,12 @@ func KbzCallback(ctx http.Context) http.Response {
 
 ## Test your app
 
-- Gateway calls go through Goravel's HTTP client: fake them by URL on the `client.Factory` from `facades.App().MakeHttp()` (the generated `facades.Http()` returns a `client.Request`, which cannot fake) and call `PreventStrayRequests()` so nothing reaches a real gateway.
+- Gateway calls go through Goravel's HTTP client: fake them by URL (the `KBZ_PAY_BASE_URL` of your test config, and so on) on the `client.Factory` from `facades.App().MakeHttp()` (the generated `facades.Http()` returns a `client.Request`, which cannot fake) and call `PreventStrayRequests()` so nothing reaches a real gateway.
 
 ```go
 fake := facades.App().MakeHttp()
 fake.Fake(map[string]any{
-	"https://api.kbzpay.com/payment/gateway/precreate": fake.Response().Json(200, map[string]any{
+	"<KBZ_PAY_BASE_URL>/precreate": fake.Response().Json(200, map[string]any{
 		"Response": map[string]any{"result": "SUCCESS", "code": "0", "prepay_id": "PREPAY1"},
 	}),
 }).PreventStrayRequests()
