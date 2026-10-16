@@ -38,7 +38,6 @@ func init() {
 			"merchant_name":           config.Env("WAVE_MONEY_MERCHANT_NAME", ""),
 			"time_to_live_in_seconds": config.Env("WAVE_MONEY_TIME_TO_LIVE_IN_SECONDS", ""),
 			"base_url":                config.Env("WAVE_MONEY_BASE_URL", ""),
-			"authenticate_url":        config.Env("WAVE_MONEY_AUTHENTICATE_URL", ""),
 		},
 
 		"aya_pay": map[string]any{

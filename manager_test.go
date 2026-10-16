@@ -73,7 +73,6 @@ func TestGatewaysDefaultToTheProductionEndpoints(t *testing.T) {
 	wave, err := manager.WaveMoney()
 	require.NoError(t, err)
 	assert.Equal(t, wavemoney.ProductionURL, wave.Config().ResolvedBaseURL())
-	assert.Equal(t, wavemoney.ProductionAuthenticateURL, wave.Config().ResolvedAuthenticateURL())
 
 	aya, err := manager.AyaPay()
 	require.NoError(t, err)
