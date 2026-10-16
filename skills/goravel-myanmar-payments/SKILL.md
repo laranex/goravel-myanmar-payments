@@ -32,9 +32,9 @@ Set the env keys of the gateways you use. Every setting of those gateways is req
 - Yoma MMQR: `YOMA_MMQR_MERCHANT_ID`, `YOMA_MMQR_CLIENT_ID`, `YOMA_MMQR_CLIENT_SECRET`, `YOMA_MMQR_WEBHOOK_HASHKEY`, `YOMA_MMQR_API_VERSION`, `YOMA_MMQR_WEBHOOK_SECRET` (every callback must carry it in `X-Webhook-Secret`), `YOMA_MMQR_BASE_URL`
 - CyberSource: `CYBER_SOURCE_PROFILE_ID`, `CYBER_SOURCE_ACCESS_KEY`, `CYBER_SOURCE_SECRET_KEY`, `CYBER_SOURCE_BASE_URL`
 - Form link lifetime in minutes, required to create an auto-submit form link: `MYANMAR_PAYMENTS_FORM_TTL_MINUTES`
-- Optional: `MYANMAR_PAYMENTS_HTTP_TIMEOUT` (seconds before a KBZ Pay, Wave Pay, AYA Pay or Yoma MMQR call gives up, 30 when empty), `MYANMAR_PAYMENTS_HTTP_CLIENT` (an `http.clients` name, default client when empty), `MYANMAR_PAYMENTS_CACHE_STORE` (store for the Yoma access token, default store when empty)
+- Optional: `MYANMAR_PAYMENTS_HTTP_TIMEOUT` (seconds before a KBZ Pay, Wave Pay, AYA Pay or Yoma MMQR call gives up, 30 when empty; one shared value, redirects are never followed), `MYANMAR_PAYMENTS_HTTP_CLIENT` (an `http.clients` name, default client when empty), `MYANMAR_PAYMENTS_CACHE_STORE` (store for the Yoma access token, default store when empty)
 
-Edit `config/myanmar_payments.go` only to change it, for example the auto-submit form route (`form_route.enabled`, `path`, `middleware`, `ttl_minutes`, `base_url`). Without `package:install`, publish it with `./artisan vendor:publish --package=github.com/laranex/goravel-myanmar-payments/v4`.
+Edit `config/myanmar_payments.go` only to change it, for example the auto-submit form route (`form_route.enabled`, `path`, `middleware`, `ttl_minutes`, `base_url`, `nonce`). Without `package:install`, publish it with `./artisan vendor:publish --package=github.com/laranex/goravel-myanmar-payments/v4`.
 
 A gateway with a missing setting returns a `*myanmarpayments.ConfigurationError` naming the key (`The kbz_pay configuration is missing [app_key].`) when first requested, not at boot. A time setting that is not a whole number greater than 0 returns the same error with `Invalid` set.
 
@@ -80,7 +80,7 @@ return ctx.Response().Redirect(http.StatusFound, payment.URL)
 
 ### Form payments (AYA Pay, CyberSource)
 
-`AyaPay().Initiate()` and `CyberSource().Initiate()` return a `*myanmarpayments.FormPayment` the customer's browser must POST. Redirect to `payments.AutoSubmitURL(form)`: a link to the package's `GET myanmar-payments/form` route, encrypted with `APP_KEY` and valid for `form_route.ttl_minutes` (`MYANMAR_PAYMENTS_FORM_TTL_MINUTES`, required: missing returns `The form_route configuration is missing [ttl_minutes].`); a tampered or expired link answers 410. The page is sent with `Cache-Control: no-store` and `Referrer-Policy: strict-origin`, so the gateway never sees the encrypted link. Or send `form.HTML()` yourself.
+`AyaPay().Initiate()` and `CyberSource().Initiate()` return a `*myanmarpayments.FormPayment` the customer's browser must POST. Redirect to `payments.AutoSubmitURL(form)`: a link to the package's `GET myanmar-payments/form` route, encrypted with `APP_KEY` and valid for `form_route.ttl_minutes` (`MYANMAR_PAYMENTS_FORM_TTL_MINUTES`, required: missing returns `The form_route configuration is missing [ttl_minutes].`); a tampered or expired link answers 410. The page is sent with `Cache-Control: no-store` and `Referrer-Policy: strict-origin`, so the gateway never sees the encrypted link. Under a nonce-based Content-Security-Policy, set `form_route.nonce` to a `func(contractshttp.Context) string` returning the request's nonce; the page then renders `form.HTMLWithNonce(nonce)`. Or send `form.HTML()` yourself.
 
 AYA Pay needs a channel: list them with `aya.Services(ctx)`, then:
 
@@ -111,11 +111,11 @@ return ctx.Response().Redirect(http.StatusFound, link)
 
 CyberSource's `cybersource.PaymentData` also needs `Currency` (e.g. `"MMK"`), `TransactionType` (e.g. `cybersource.Sale`) and `Locale` (e.g. `"en-us"`); there are no defaults.
 
-`AutoSubmitURL` returns `payments.ErrFormRouteDisabled` when the route is off and `payments.ErrCryptNotAvailable` without the crypt facade.
+`Initiate()` never needs the form route; `AutoSubmitURL` checks, in order: the route is on (`payments.ErrFormRouteDisabled`), `ttl_minutes` is set (`*myanmarpayments.ConfigurationError`), the crypt facade exists (`payments.ErrCryptNotAvailable`).
 
 ### Handle the callback
 
-Register a POST route without CSRF or auth middleware. `payments.CallbackRequestFromContext(ctx)` reads the request, `HandleCallback` verifies the signature and returns a `*myanmarpayments.PaymentCallback`, or a `*myanmarpayments.SignatureVerificationError`:
+Register a POST route without CSRF or auth middleware. `HandleCallbackFromContext(gateway, ctx)` resolves the gateway, reads the request and verifies the signature, returning a `*myanmarpayments.PaymentCallback`, or a `*myanmarpayments.SignatureVerificationError`:
 
 ```go
 import (
@@ -125,12 +125,8 @@ import (
 )
 
 func KbzCallback(ctx http.Context) http.Response {
-	request, err := payments.CallbackRequestFromContext(ctx)
-	if err != nil {
-		return ctx.Response().String(http.StatusBadRequest, "bad request")
-	}
 	callback, err := paymentsfacades.MyanmarPayments().
-		HandleCallback(payments.GatewayKbzPay, request)
+		HandleCallbackFromContext(payments.GatewayKbzPay, ctx)
 	if err != nil {
 		return ctx.Response().String(http.StatusBadRequest, "invalid signature")
 	}
@@ -142,9 +138,9 @@ func KbzCallback(ctx http.Context) http.Response {
 ```
 
 - `payments.Acknowledge(ctx, callback)` returns the reply each gateway expects so it stops retrying; with a nil callback it is an empty 200.
-- One route for every gateway: `HandleCallback(ctx.Request().Route("gateway"), request)`; an unknown name returns `payments.ErrUnknownGateway`.
+- One route for every gateway: `HandleCallbackFromContext(ctx.Request().Route("gateway"), ctx)`; an unknown name returns `payments.ErrUnknownGateway`. To keep the raw request (e.g. to store it), build it with `payments.CallbackRequestFromContext(ctx)` and call `HandleCallback(gateway, request)`.
 - Check AYA's browser return with `aya.VerifyRedirect(request)`; it is never proof of payment.
-- `CallbackRequestFromContext` returns `payments.ErrCallbackBodyTooLarge` for a body over `payments.MaxCallbackBodyBytes` (64 KiB).
+- `HandleCallbackFromContext` and `CallbackRequestFromContext` return `payments.ErrCallbackBodyTooLarge` for a body over `payments.MaxCallbackBodyBytes` (64 KiB).
 - Yoma MMQR callbacks sign only the order number and status and carry no amount: match the order number to your stored order (its QR was generated for the stored amount) and, to confirm, call `YomaMmqr().Status(ctx, reference)` with that order's QR reference (`refLabel`). The status result has no amount either, so trust your stored amount.
 - For production, store the verified call, acknowledge immediately and process it once in a queued job; the docs show this flow as app code (the package stores nothing).
 

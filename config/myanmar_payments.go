@@ -78,13 +78,16 @@ func init() {
 		// form. This route renders that form and submits it, so a handler can
 		// redirect to payments.AutoSubmitURL(form). Links are encrypted with
 		// APP_KEY and expire after "ttl_minutes" (required to create a link).
-		// "base_url" starts the links.
+		// "base_url" starts the links. "nonce", a
+		// func(contractshttp.Context) string, returns the CSP nonce put on the
+		// page's inline script (nil: no nonce).
 		"form_route": map[string]any{
 			"enabled":     true,
 			"path":        "myanmar-payments/form",
 			"middleware":  []contractshttp.Middleware{},
 			"ttl_minutes": config.Env("MYANMAR_PAYMENTS_FORM_TTL_MINUTES", ""),
 			"base_url":    config.Env("APP_URL", "http://localhost"),
+			"nonce":       nil,
 		},
 	})
 }

@@ -23,10 +23,14 @@ type HTTPClient struct {
 // means the default client) with timeout; a zero timeout keeps the Goravel client's
 // own. A nil factory sends requests with a plain *http.Client.
 func NewHTTPClient(factory client.Factory, name string, timeout time.Duration) *HTTPClient {
-	return &HTTPClient{factory: factory, name: name, timeout: timeout, fallback: &http.Client{Timeout: timeout}}
+	return &HTTPClient{factory: factory, name: name, timeout: timeout, fallback: &http.Client{Timeout: timeout, CheckRedirect: noRedirects}}
 }
 
-// Do sends req.
+// noRedirects makes a client return a 3xx response as is, like every SDK: the gateway
+// handles it as any other non-2xx answer.
+func noRedirects(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+
+// Do sends req. Redirects are never followed.
 func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	if c.factory == nil {
 		return c.fallback.Do(req)
@@ -37,9 +41,10 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 		return nil, fmt.Errorf("goravel-myanmar-payments: the Goravel HTTP client %q is not configured in http.clients", c.name)
 	}
 
-	// Copy the client so the timeout applies to gateway calls only. The transport,
-	// which carries Goravel's fakes, is shared.
+	// Copy the client so the timeout and redirect policy apply to gateway calls only.
+	// The transport, which carries Goravel's fakes, is shared.
 	httpClient := *base
+	httpClient.CheckRedirect = noRedirects
 	if c.timeout > 0 {
 		httpClient.Timeout = c.timeout
 	}

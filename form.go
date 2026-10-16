@@ -42,8 +42,9 @@ type formField struct {
 // AutoSubmitURL returns a link to the form route that renders form and posts it to the
 // gateway from the customer's browser, so a handler can simply redirect to it. The
 // form is encrypted with Goravel's crypt facade (APP_KEY) and the link expires after
-// myanmar_payments.form_route.ttl_minutes, which is required: a missing or invalid
-// value returns a *myanmarpayments.ConfigurationError.
+// myanmar_payments.form_route.ttl_minutes, which is required. The checks run in this
+// order: a disabled route returns ErrFormRouteDisabled, a missing or invalid TTL a
+// *myanmarpayments.ConfigurationError, and a missing crypt facade ErrCryptNotAvailable.
 //
 // AYA Pay and CyberSource return a *myanmarpayments.FormPayment from Initiate; the Go
 // SDK has no auto-submit URL of its own, so this package adds it.
@@ -54,13 +55,12 @@ func (m *Manager) AutoSubmitURL(form *myanmarpayments.FormPayment) (string, erro
 	if !m.settings.FormRouteEnabled() {
 		return "", ErrFormRouteDisabled
 	}
-	if m.crypt == nil {
-		return "", ErrCryptNotAvailable
-	}
-
 	ttl, err := m.settings.FormRouteTTL()
 	if err != nil {
 		return "", err
+	}
+	if m.crypt == nil {
+		return "", ErrCryptNotAvailable
 	}
 
 	link := formLink{
@@ -116,7 +116,8 @@ func (m *Manager) ResolveFormPayment(payload string) (*myanmarpayments.FormPayme
 }
 
 // ServeForm is the handler of the form route: it renders the form behind the payload
-// query parameter as a page that submits itself (FormPayment.HTML), or answers 410
+// query parameter as a page that submits itself (FormPayment.HTMLWithNonce, with the
+// nonce myanmar_payments.form_route.nonce returns for ctx, if set), or answers 410
 // Gone for an invalid or expired link.
 func (m *Manager) ServeForm(ctx http.Context) http.Response {
 	form, err := m.ResolveFormPayment(ctx.Request().Query("payload"))
@@ -128,7 +129,12 @@ func (m *Manager) ServeForm(ctx http.Context) http.Response {
 	// strict-origin: the gateway sees only this site's origin, never the encrypted link.
 	ctx.Response().Header("Referrer-Policy", "strict-origin")
 
-	return ctx.Response().Data(nethttp.StatusOK, "text/html; charset=utf-8", []byte(form.HTML()))
+	nonce := ""
+	if nonceFor := m.settings.FormRouteNonce(); nonceFor != nil {
+		nonce = nonceFor(ctx)
+	}
+
+	return ctx.Response().Data(nethttp.StatusOK, "text/html; charset=utf-8", []byte(form.HTMLWithNonce(nonce)))
 }
 
 // registerFormRoute registers GET myanmar_payments.form_route.path on router, with the

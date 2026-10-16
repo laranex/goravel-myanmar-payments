@@ -92,3 +92,47 @@ func TestHandleCallbackByNameFromOneRoute(t *testing.T) {
 	assert.Equal(t, nethttp.StatusBadRequest, response.StatusCode)
 	assert.True(t, strings.Contains(readBody(t, response), "invalid signature"))
 }
+
+func TestHandleCallbackFromContext(t *testing.T) {
+	config := newConfig(t, map[string]any{ConfigKey: credentials("https://gateway.test")})
+	manager := newManager(t, config, nil, nil)
+	unconfigured := newManager(t, newConfig(t, nil), nil, nil)
+	server := newTestServer(config)
+	var errs []error
+	route := func(m *Manager) contractshttp.HandlerFunc {
+		return func(ctx contractshttp.Context) contractshttp.Response {
+			callback, err := m.HandleCallbackFromContext(ctx.Request().Route("gateway"), ctx)
+			errs = append(errs, err)
+			if err != nil {
+				return ctx.Response().String(nethttp.StatusBadRequest, "rejected")
+			}
+
+			return Acknowledge(ctx, callback)
+		}
+	}
+	server.router.Post("/webhooks/{gateway}", route(manager))
+	server.router.Post("/unconfigured/{gateway}", route(unconfigured))
+
+	response := server.do(t, nethttp.MethodPost, "/webhooks/kbz-pay", "application/json", kbzCallbackBody(t, "PAY_SUCCESS"))
+	assert.Equal(t, nethttp.StatusOK, response.StatusCode)
+	assert.Equal(t, "success", readBody(t, response))
+	require.NoError(t, errs[0])
+
+	tooLarge := `{"a":"` + strings.Repeat("b", MaxCallbackBodyBytes) + `"}`
+	server.do(t, nethttp.MethodPost, "/webhooks/paypal", "application/json", tooLarge)
+	assert.ErrorIs(t, errs[1], ErrUnknownGateway, "the gateway is resolved before the body is read")
+
+	server.do(t, nethttp.MethodPost, "/unconfigured/kbz-pay", "application/json", tooLarge)
+	var configuration *myanmarpayments.ConfigurationError
+	assert.True(t, errors.As(errs[2], &configuration), "configuration errors come before the body limit")
+
+	server.do(t, nethttp.MethodPost, "/webhooks/kbz-pay", "application/json", tooLarge)
+	assert.ErrorIs(t, errs[3], ErrCallbackBodyTooLarge)
+
+	server.do(t, nethttp.MethodPost, "/webhooks/wave-pay", "application/json", yomaCallbackBody(t))
+	var signature *myanmarpayments.SignatureVerificationError
+	assert.True(t, errors.As(errs[4], &signature))
+
+	_, err := manager.HandleCallbackFromContext(GatewayKbzPay, nil)
+	assert.ErrorContains(t, err, "no request")
+}

@@ -83,6 +83,22 @@ func TestAutoSubmitURLRendersTheSignedForm(t *testing.T) {
 	assert.Contains(t, body, `name="checkSum" value="`+checkSum+`"`)
 }
 
+func TestFormRouteNonce(t *testing.T) {
+	var seen contractshttp.Context
+	server := newFormServer(t, map[string]any{"nonce": func(ctx contractshttp.Context) string {
+		seen = ctx
+		return `n0nce"`
+	}})
+	form := ayaForm(t, server.manager)
+	link, err := server.manager.AutoSubmitURL(form)
+	require.NoError(t, err)
+
+	body := readBody(t, server.open(t, link))
+	assert.NotNil(t, seen, "the nonce function gets the request context")
+	assert.Equal(t, form.HTMLWithNonce(`n0nce"`), body)
+	assert.Contains(t, body, `<script nonce="n0nce&#34;">`)
+}
+
 func TestResolveFormPaymentKeepsEveryField(t *testing.T) {
 	server := newFormServer(t, nil)
 	cyber, err := server.manager.CyberSource()
@@ -167,12 +183,24 @@ func TestAutoSubmitURLErrors(t *testing.T) {
 		assert.ErrorIs(t, err, ErrFormRouteDisabled)
 	})
 	t.Run("no crypt", func(t *testing.T) {
-		manager, err := NewManager(Options{Config: newConfig(t, nil)})
+		manager, err := NewManager(Options{Config: newConfig(t, map[string]any{ConfigKey: map[string]any{"form_route": map[string]any{"ttl_minutes": 30}}})})
 		require.NoError(t, err)
 		_, err = manager.AutoSubmitURL(&myanmarpayments.FormPayment{Action: "https://gateway.test"})
 		assert.ErrorIs(t, err, ErrCryptNotAvailable)
 		_, err = manager.ResolveFormPayment("payload")
 		assert.ErrorIs(t, err, ErrInvalidFormLink)
+	})
+	t.Run("route, then ttl, then crypt", func(t *testing.T) {
+		manager, err := NewManager(Options{Config: newConfig(t, map[string]any{ConfigKey: map[string]any{"form_route": map[string]any{"enabled": false}}})})
+		require.NoError(t, err)
+		form := &myanmarpayments.FormPayment{Action: "https://gateway.test"}
+		_, err = manager.AutoSubmitURL(form)
+		assert.ErrorIs(t, err, ErrFormRouteDisabled)
+
+		manager, err = NewManager(Options{Config: newConfig(t, nil)})
+		require.NoError(t, err)
+		_, err = manager.AutoSubmitURL(form)
+		assert.EqualError(t, err, "myanmarpayments: The form_route configuration is missing [ttl_minutes].")
 	})
 	t.Run("missing ttl", func(t *testing.T) {
 		server := newFormServer(t, map[string]any{"ttl_minutes": ""})

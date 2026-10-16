@@ -184,6 +184,14 @@ func (s settings) FormRouteMiddleware() []contractshttp.Middleware {
 	return middleware
 }
 
+// FormRouteNonce returns myanmar_payments.form_route.nonce, the function that gives
+// the CSP nonce of the form page's inline script, or nil when it is not set.
+func (s settings) FormRouteNonce() func(contractshttp.Context) string {
+	nonce, _ := s.config.Get(ConfigKey + ".form_route.nonce").(func(contractshttp.Context) string)
+
+	return nonce
+}
+
 // FormRouteBaseURL is the absolute URL the form links start with: form_route.base_url,
 // then http.url, then APP_URL.
 func (s settings) FormRouteBaseURL() string {

@@ -119,7 +119,7 @@ func TestServiceProviderUsesTheConfiguredCacheStoreAndHTTPClient(t *testing.T) {
 
 func TestServiceProviderWithoutOptionalFacades(t *testing.T) {
 	t.Cleanup(resetRegistered)
-	config := newConfig(t, nil)
+	config := newConfig(t, map[string]any{ConfigKey: map[string]any{"form_route": map[string]any{"ttl_minutes": 30}}})
 	app := mocksfoundation.NewApplication(t)
 	callback := registerWith(t, app)
 

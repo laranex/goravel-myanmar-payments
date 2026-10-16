@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/goravel/framework/contracts/http"
 	myanmarpayments "github.com/laranex/go-myanmar-payments/v4"
 )
 
@@ -59,6 +60,24 @@ func (m *Manager) Gateway(name string) (CallbackHandler, error) {
 // *myanmarpayments.SignatureVerificationError.
 func (m *Manager) HandleCallback(name string, request *myanmarpayments.CallbackRequest) (*myanmarpayments.PaymentCallback, error) {
 	gateway, err := m.Gateway(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return gateway.HandleCallback(request)
+}
+
+// HandleCallbackFromContext verifies the callback in ctx with the named gateway, e.g.
+// in one route that serves every gateway. It resolves the gateway first (an error
+// wrapping ErrUnknownGateway or a *myanmarpayments.ConfigurationError), then reads
+// the request with CallbackRequestFromContext (ErrCallbackBodyTooLarge), then
+// verifies it (*myanmarpayments.SignatureVerificationError).
+func (m *Manager) HandleCallbackFromContext(name string, ctx http.Context) (*myanmarpayments.PaymentCallback, error) {
+	gateway, err := m.Gateway(name)
+	if err != nil {
+		return nil, err
+	}
+	request, err := CallbackRequestFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}

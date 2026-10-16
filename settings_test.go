@@ -102,6 +102,15 @@ func TestFormRouteSettings(t *testing.T) {
 		assert.Equal(t, "/myanmar-payments/form", s.FormRoutePath())
 		assert.Empty(t, s.FormRouteMiddleware())
 		assert.Equal(t, "https://env.test", s.FormRouteBaseURL())
+		assert.Nil(t, s.FormRouteNonce())
+	})
+	t.Run("nonce", func(t *testing.T) {
+		nonce := func(contractshttp.Context) string { return "abc" }
+		s := settings{config: newConfig(t, map[string]any{ConfigKey: map[string]any{"form_route": map[string]any{"nonce": nonce}}})}
+		require.NotNil(t, s.FormRouteNonce())
+		assert.Equal(t, "abc", s.FormRouteNonce()(nil))
+		s = settings{config: newConfig(t, map[string]any{ConfigKey: map[string]any{"form_route": map[string]any{"nonce": "abc"}}})}
+		assert.Nil(t, s.FormRouteNonce(), "only a func(contractshttp.Context) string counts")
 	})
 	t.Run("http.url is used before APP_URL", func(t *testing.T) {
 		s := settings{config: newConfig(t, map[string]any{"http": map[string]any{"url": "https://http.test"}})}

@@ -172,3 +172,30 @@ func TestHTTPClientRejectsAnUnknownGoravelClient(t *testing.T) {
 	_, err = client.Do(request)
 	assert.ErrorContains(t, err, `HTTP client "missing" is not configured`)
 }
+
+func TestHTTPClientNeverFollowsRedirects(t *testing.T) {
+	var followed bool
+	server := httptest.NewServer(nethttp.HandlerFunc(func(w nethttp.ResponseWriter, r *nethttp.Request) {
+		if r.URL.Path == "/target" {
+			followed = true
+			return
+		}
+		nethttp.Redirect(w, r, "/target", nethttp.StatusFound)
+	}))
+	t.Cleanup(server.Close)
+
+	config := newConfig(t, nil)
+	for name, client := range map[string]*HTTPClient{
+		"goravel client": NewHTTPClient(newHTTPFactory(t, config), "", time.Second),
+		"plain client":   NewHTTPClient(nil, "", time.Second),
+	} {
+		request, err := nethttp.NewRequest(nethttp.MethodPost, server.URL+"/pay", nil)
+		require.NoError(t, err)
+		response, err := client.Do(request)
+		require.NoError(t, err, name)
+		assert.Equal(t, nethttp.StatusFound, response.StatusCode, name)
+		assert.Equal(t, "/target", response.Header.Get("Location"), name)
+		_ = response.Body.Close()
+	}
+	assert.False(t, followed)
+}
