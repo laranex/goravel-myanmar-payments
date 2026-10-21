@@ -40,6 +40,14 @@ func init() {
 			"base_redirect_url":       config.Env("WAVE_PAY_BASE_REDIRECT_URL", ""),
 		},
 
+		"wave_pay_mini_app": map[string]any{
+			"client_id":     config.Env("WAVE_PAY_MINI_APP_CLIENT_ID", ""),
+			"client_secret": config.Env("WAVE_PAY_MINI_APP_CLIENT_SECRET", ""),
+			"mini_app_id":   config.Env("WAVE_PAY_MINI_APP_MINI_APP_ID", ""),
+			"secret_key":    config.Env("WAVE_PAY_MINI_APP_SECRET_KEY", ""),
+			"base_url":      config.Env("WAVE_PAY_MINI_APP_BASE_URL", ""),
+		},
+
 		"aya_pay": map[string]any{
 			"app_key":    config.Env("AYA_PAY_APP_KEY", ""),
 			"app_secret": config.Env("AYA_PAY_APP_SECRET", ""),
@@ -68,7 +76,8 @@ func init() {
 		// Gateway calls go through Goravel's HTTP client, so facades.Http().Fake()
 		// intercepts them in tests. "client" names an entry of http.clients
 		// (empty means the default client). "timeout" is the seconds KBZ Pay,
-		// Wave Pay, AYA Pay and Yoma MMQR calls may take (30 when empty).
+		// Wave Pay, Wave Pay Mini App, AYA Pay and Yoma MMQR calls may take
+		// (30 when empty).
 		"http": map[string]any{
 			"client":  config.Env("MYANMAR_PAYMENTS_HTTP_CLIENT", ""),
 			"timeout": config.Env("MYANMAR_PAYMENTS_HTTP_TIMEOUT", 30),
@@ -76,8 +85,8 @@ func init() {
 
 		// Cache
 		//
-		// The cache store that keeps Yoma MMQR access tokens between requests
-		// and processes. Empty uses your default store.
+		// The cache store that keeps Yoma MMQR and Wave Pay Mini App access
+		// tokens between requests and processes. Empty uses your default store.
 		"cache_store": config.Env("MYANMAR_PAYMENTS_CACHE_STORE", ""),
 
 		// Auto-submit Form Route
@@ -122,6 +131,12 @@ WAVE_PAY_MERCHANT_NAME=
 WAVE_PAY_TIME_TO_LIVE_IN_SECONDS=
 WAVE_PAY_BASE_URL=
 WAVE_PAY_BASE_REDIRECT_URL=
+
+WAVE_PAY_MINI_APP_CLIENT_ID=
+WAVE_PAY_MINI_APP_CLIENT_SECRET=
+WAVE_PAY_MINI_APP_MINI_APP_ID=
+WAVE_PAY_MINI_APP_SECRET_KEY=
+WAVE_PAY_MINI_APP_BASE_URL=
 
 AYA_PAY_APP_KEY=
 AYA_PAY_APP_SECRET=

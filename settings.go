@@ -43,6 +43,12 @@ var envKeys = map[string]string{
 	"WAVE_PAY_BASE_URL":                "wave_pay.base_url",
 	"WAVE_PAY_BASE_REDIRECT_URL":       "wave_pay.base_redirect_url",
 
+	"WAVE_PAY_MINI_APP_CLIENT_ID":     "wave_pay_mini_app.client_id",
+	"WAVE_PAY_MINI_APP_CLIENT_SECRET": "wave_pay_mini_app.client_secret",
+	"WAVE_PAY_MINI_APP_MINI_APP_ID":   "wave_pay_mini_app.mini_app_id",
+	"WAVE_PAY_MINI_APP_SECRET_KEY":    "wave_pay_mini_app.secret_key",
+	"WAVE_PAY_MINI_APP_BASE_URL":      "wave_pay_mini_app.base_url",
+
 	"AYA_PAY_APP_KEY":    "aya_pay.app_key",
 	"AYA_PAY_APP_SECRET": "aya_pay.app_secret",
 	"AYA_PAY_BASE_URL":   "aya_pay.base_url",
@@ -121,7 +127,7 @@ func (s settings) HTTPTimeout() time.Duration {
 	return time.Duration(seconds) * time.Second
 }
 
-// CacheStore is the cache store that keeps Yoma MMQR tokens; empty means the default store.
+// CacheStore is the cache store that keeps Yoma MMQR and Wave Pay Mini App tokens; empty means the default store.
 func (s settings) CacheStore() string { return s.Getenv("MYANMAR_PAYMENTS_CACHE_STORE") }
 
 // FormRouteEnabled reports whether the auto-submit form route is registered.

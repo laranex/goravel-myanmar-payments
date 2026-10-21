@@ -15,20 +15,31 @@ import (
 func TestGatewayResolvesEveryName(t *testing.T) {
 	manager := newManager(t, newConfig(t, map[string]any{ConfigKey: credentials("https://gateway.test")}), nil, nil)
 
-	assert.Equal(t, []string{"kbz-pay", "wave-pay", "aya-pay", "yoma-mmqr", "cyber-source"}, GatewayNames())
+	assert.Equal(t, []string{"kbz-pay", "wave-pay", "wave-pay-mini-app", "aya-pay", "yoma-mmqr", "cyber-source"}, GatewayNames())
 
 	kbz, _ := manager.KbzPay()
 	wave, _ := manager.WavePay()
 	aya, _ := manager.AyaPay()
 	yoma, _ := manager.YomaMmqr()
 	cyber, _ := manager.CyberSource()
-	expected := []CallbackHandler{kbz, wave, aya, yoma, cyber}
+	expected := map[string]CallbackHandler{GatewayKbzPay: kbz, GatewayWavePay: wave, GatewayAyaPay: aya, GatewayYomaMmqr: yoma, GatewayCyberSource: cyber}
 
-	for i, name := range GatewayNames() {
+	for _, name := range GatewayNames() {
 		gateway, err := manager.Gateway(name)
 		require.NoError(t, err)
-		assert.Same(t, expected[i], gateway, name)
+		if name == GatewayWavePayMiniApp {
+			continue
+		}
+		assert.Same(t, expected[name], gateway, name)
 	}
+
+	miniApp, _ := manager.WavePayMiniApp()
+	gateway, err := manager.Gateway(GatewayWavePayMiniApp)
+	require.NoError(t, err)
+	handler, ok := gateway.(*WavePayMiniAppCallbackHandler)
+	require.True(t, ok)
+	assert.Same(t, miniApp, handler.Gateway)
+	assert.Empty(t, handler.CallbackURL)
 }
 
 func TestGatewayRejectsAnUnknownName(t *testing.T) {
@@ -37,7 +48,7 @@ func TestGatewayRejectsAnUnknownName(t *testing.T) {
 	gateway, err := manager.Gateway("paypal")
 	assert.Nil(t, gateway)
 	require.ErrorIs(t, err, ErrUnknownGateway)
-	assert.EqualError(t, err, "goravel-myanmar-payments: unknown payment gateway [paypal]; use one of kbz-pay, wave-pay, aya-pay, yoma-mmqr, cyber-source")
+	assert.EqualError(t, err, "goravel-myanmar-payments: unknown payment gateway [paypal]; use one of kbz-pay, wave-pay, wave-pay-mini-app, aya-pay, yoma-mmqr, cyber-source")
 
 	_, err = manager.HandleCallback("paypal", &myanmarpayments.CallbackRequest{})
 	assert.ErrorIs(t, err, ErrUnknownGateway)
@@ -93,6 +104,36 @@ func TestHandleCallbackByNameFromOneRoute(t *testing.T) {
 	assert.True(t, strings.Contains(readBody(t, response), "invalid signature"))
 }
 
+func TestHandleCallbackByNameNeedsTheMiniAppCallbackURL(t *testing.T) {
+	manager := newManager(t, newConfig(t, map[string]any{ConfigKey: credentials("https://gateway.test")}), nil, nil)
+	callbackURL := "https://shop.test/payments/callback/wave-pay-mini-app"
+	request := myanmarpayments.NewCallbackRequest([]byte(miniAppCallbackBody(t, callbackURL, "SUCCESSFUL")), nil, nil)
+
+	_, err := manager.HandleCallback(GatewayWavePayMiniApp, request)
+	require.ErrorIs(t, err, ErrCallbackURLRequired)
+	assert.EqualError(t, err, "goravel-myanmar-payments: the wave-pay-mini-app callback needs the callback URL the payment was signed with; use HandleCallbackFromContext or WavePayMiniApp().HandleCallback(request, callbackURL)")
+
+	_, err = newManager(t, newConfig(t, nil), nil, nil).HandleCallback(GatewayWavePayMiniApp, request)
+	var configuration *myanmarpayments.ConfigurationError
+	assert.True(t, errors.As(err, &configuration), "the gateway is resolved first")
+
+	gateway, err := manager.Gateway(GatewayWavePayMiniApp)
+	require.NoError(t, err)
+	handler := gateway.(*WavePayMiniAppCallbackHandler)
+	handler.CallbackURL = callbackURL
+	callback, err := handler.HandleCallback(request)
+	require.NoError(t, err)
+	assert.Equal(t, myanmarpayments.StatusSuccessful, callback.Status)
+
+	miniApp, err := manager.WavePayMiniApp()
+	require.NoError(t, err)
+	callback, err = miniApp.HandleCallback(request, callbackURL)
+	require.NoError(t, err)
+	assert.Equal(t, "ORDER123", callback.OrderID)
+	assert.Equal(t, "TXN-1", callback.GatewayReference)
+	assert.Equal(t, "5000", callback.Amount)
+}
+
 func TestHandleCallbackFromContext(t *testing.T) {
 	config := newConfig(t, map[string]any{ConfigKey: credentials("https://gateway.test")})
 	manager := newManager(t, config, nil, nil)
@@ -135,4 +176,39 @@ func TestHandleCallbackFromContext(t *testing.T) {
 
 	_, err := manager.HandleCallbackFromContext(GatewayKbzPay, nil)
 	assert.ErrorContains(t, err, "no request")
+}
+
+func TestHandleCallbackFromContextVerifiesMiniAppCallbacksAgainstTheRequestURL(t *testing.T) {
+	config := newConfig(t, map[string]any{ConfigKey: credentials("https://gateway.test")})
+	manager := newManager(t, config, nil, nil)
+	server := newTestServer(config)
+	var errs []error
+	var callbacks []*myanmarpayments.PaymentCallback
+	server.router.Post("/payments/callback/{gateway}", func(ctx contractshttp.Context) contractshttp.Response {
+		callback, err := manager.HandleCallbackFromContext(ctx.Request().Route("gateway"), ctx)
+		errs = append(errs, err)
+		if err != nil {
+			return ctx.Response().String(nethttp.StatusBadRequest, "rejected")
+		}
+		callbacks = append(callbacks, callback)
+
+		return Acknowledge(ctx, callback)
+	})
+
+	// httptest requests are http://example.com/...; the query string is not part of the URL.
+	signedURL := "http://example.com/payments/callback/wave-pay-mini-app"
+	response := server.do(t, nethttp.MethodPost, "/payments/callback/wave-pay-mini-app?attempt=1", "application/json", miniAppCallbackBody(t, signedURL, "SUCCESSFUL"))
+	assert.Equal(t, nethttp.StatusOK, response.StatusCode)
+	assert.Equal(t, "", readBody(t, response), "Wave defines no response body")
+	require.NoError(t, errs[0])
+	assert.Equal(t, myanmarpayments.StatusSuccessful, callbacks[0].Status)
+	assert.Equal(t, "ORDER123", callbacks[0].OrderID)
+	assert.Equal(t, "MERCHANT789", callbacks[0].Raw["merchantRefId"])
+
+	// A callback signed for another URL does not verify.
+	response = server.do(t, nethttp.MethodPost, "/payments/callback/wave-pay-mini-app", "application/json", miniAppCallbackBody(t, "https://shop.test/payments/callback/wave-pay-mini-app", "SUCCESSFUL"))
+	assert.Equal(t, nethttp.StatusBadRequest, response.StatusCode)
+	var signature *myanmarpayments.SignatureVerificationError
+	require.True(t, errors.As(errs[1], &signature))
+	assert.Equal(t, "Wave Pay Mini App callback hash verification failed.", signature.Message)
 }

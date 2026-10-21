@@ -9,6 +9,7 @@ import (
 	"github.com/laranex/go-myanmar-payments/v4/cybersource"
 	"github.com/laranex/go-myanmar-payments/v4/kbzpay"
 	"github.com/laranex/go-myanmar-payments/v4/wavepay"
+	"github.com/laranex/go-myanmar-payments/v4/wavepayminiapp"
 	"github.com/laranex/go-myanmar-payments/v4/yomammqr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,6 +30,11 @@ func TestGatewaysAreBuiltFromThePublishedConfig(t *testing.T) {
 	wave, err := manager.WavePay()
 	require.NoError(t, err)
 	assert.Equal(t, wavepay.Config{MerchantID: "wave-merchant", SecretKey: "wave-secret", MerchantName: "Shop", TimeToLiveSeconds: 300, TimeoutSeconds: 30, BaseURL: "https://gateway.test/wave", BaseRedirectURL: "https://gateway.test/wave-pay"}, wave.Config())
+
+	miniApp, err := manager.WavePayMiniApp()
+	require.NoError(t, err)
+	assert.Equal(t, wavepayminiapp.Config{ClientID: "mini-client", ClientSecret: "mini-client-secret", MiniAppID: "MINI456", SecretKey: "mini-secret", TimeoutSeconds: 30, BaseURL: "https://gateway.test/mini-app/"}, miniApp.Config())
+	assert.Equal(t, "https://gateway.test/mini-app", miniApp.Config().ResolvedBaseURL())
 
 	aya, err := manager.AyaPay()
 	require.NoError(t, err)
@@ -55,6 +61,10 @@ func TestGatewaysAreBuiltOnceAndReused(t *testing.T) {
 	yoma1, _ := manager.YomaMmqr()
 	yoma2, _ := manager.YomaMmqr()
 	assert.Same(t, yoma1, yoma2)
+
+	miniApp1, _ := manager.WavePayMiniApp()
+	miniApp2, _ := manager.WavePayMiniApp()
+	assert.Same(t, miniApp1, miniApp2)
 }
 
 func TestEverySettingIsRequired(t *testing.T) {
@@ -76,6 +86,12 @@ func TestEverySettingIsRequired(t *testing.T) {
 		{"wave_pay", "wave_pay", "base_url", "base_url", "", false},
 		{"wave_pay", "wave_pay", "base_redirect_url", "base_redirect_url", "", false},
 		{"wave_pay", "http", "timeout", "timeout_in_seconds", "-30", true},
+		{"wave_pay_mini_app", "wave_pay_mini_app", "client_id", "client_id", "", false},
+		{"wave_pay_mini_app", "wave_pay_mini_app", "client_secret", "client_secret", "", false},
+		{"wave_pay_mini_app", "wave_pay_mini_app", "mini_app_id", "mini_app_id", "", false},
+		{"wave_pay_mini_app", "wave_pay_mini_app", "secret_key", "secret_key", "", false},
+		{"wave_pay_mini_app", "wave_pay_mini_app", "base_url", "base_url", "", false},
+		{"wave_pay_mini_app", "http", "timeout", "timeout_in_seconds", "0", true},
 		{"aya_pay", "aya_pay", "app_secret", "app_secret", "", false},
 		{"aya_pay", "aya_pay", "base_url", "base_url", "", false},
 		{"aya_pay", "http", "timeout", "timeout_in_seconds", "2.5", true},
@@ -94,11 +110,12 @@ func TestEverySettingIsRequired(t *testing.T) {
 			manager := newManager(t, newConfig(t, map[string]any{ConfigKey: section}), nil, nil)
 
 			builds := map[string]func() error{
-				"kbz_pay":      func() error { _, err := manager.KbzPay(); return err },
-				"wave_pay":     func() error { _, err := manager.WavePay(); return err },
-				"aya_pay":      func() error { _, err := manager.AyaPay(); return err },
-				"yoma_mmqr":    func() error { _, err := manager.YomaMmqr(); return err },
-				"cyber_source": func() error { _, err := manager.CyberSource(); return err },
+				"kbz_pay":           func() error { _, err := manager.KbzPay(); return err },
+				"wave_pay":          func() error { _, err := manager.WavePay(); return err },
+				"wave_pay_mini_app": func() error { _, err := manager.WavePayMiniApp(); return err },
+				"aya_pay":           func() error { _, err := manager.AyaPay(); return err },
+				"yoma_mmqr":         func() error { _, err := manager.YomaMmqr(); return err },
+				"cyber_source":      func() error { _, err := manager.CyberSource(); return err },
 			}
 			var configurationError *myanmarpayments.ConfigurationError
 			require.True(t, errors.As(builds[tt.gateway](), &configurationError))
@@ -125,6 +142,9 @@ func TestTheHTTPTimeoutDefaultsTo30Seconds(t *testing.T) {
 		yoma, err := manager.YomaMmqr()
 		require.NoError(t, err)
 		assert.Equal(t, 30, yoma.Config().TimeoutSeconds, value)
+		miniApp, err := manager.WavePayMiniApp()
+		require.NoError(t, err)
+		assert.Equal(t, 30, miniApp.Config().TimeoutSeconds, value)
 	}
 }
 
@@ -153,6 +173,7 @@ func TestGatewaysReadTheEnvironmentWithoutAPublishedConfig(t *testing.T) {
 	for name, value := range map[string]string{
 		"KBZ_PAY_APP_ID": "env-app", "KBZ_PAY_APP_KEY": "env-key", "KBZ_PAY_MERCHANT_CODE": "env-merchant", "KBZ_PAY_BASE_URL": "https://kbz.test", "KBZ_PAY_PWA_BASE_REDIRECT_URL": "https://kbz.test/pwa/", "KBZ_PAY_TIME_TO_LIVE_IN_MINUTES": "45",
 		"WAVE_PAY_MERCHANT_ID": "env-wave", "WAVE_PAY_SECRET_KEY": "env-wave-secret", "WAVE_PAY_MERCHANT_NAME": "Env Shop", "WAVE_PAY_TIME_TO_LIVE_IN_SECONDS": "120", "WAVE_PAY_BASE_URL": "https://wave.test", "WAVE_PAY_BASE_REDIRECT_URL": "https://wave-pay.test",
+		"WAVE_PAY_MINI_APP_CLIENT_ID": "m-client", "WAVE_PAY_MINI_APP_CLIENT_SECRET": "m-secret", "WAVE_PAY_MINI_APP_MINI_APP_ID": "m-app", "WAVE_PAY_MINI_APP_SECRET_KEY": "m-key", "WAVE_PAY_MINI_APP_BASE_URL": "https://preprodnewapi.wavemoney.io",
 		"AYA_PAY_APP_KEY": "env-aya", "AYA_PAY_APP_SECRET": "env-aya-secret", "AYA_PAY_BASE_URL": "https://aya.test/",
 		"YOMA_MMQR_MERCHANT_ID": "y-merchant", "YOMA_MMQR_CLIENT_ID": "y-client", "YOMA_MMQR_CLIENT_SECRET": "y-secret", "YOMA_MMQR_WEBHOOK_HASHKEY": "y-hash", "YOMA_MMQR_WEBHOOK_SECRET": "y-webhook", "YOMA_MMQR_API_VERSION": "v1", "YOMA_MMQR_BASE_URL": "https://yoma.test",
 		"CYBER_SOURCE_PROFILE_ID": "c-profile", "CYBER_SOURCE_ACCESS_KEY": "c-access", "CYBER_SOURCE_SECRET_KEY": "c-secret", "CYBER_SOURCE_BASE_URL": "https://cyber.test",
@@ -172,6 +193,10 @@ func TestGatewaysReadTheEnvironmentWithoutAPublishedConfig(t *testing.T) {
 	assert.Equal(t, 120, wave.Config().TimeToLiveSeconds)
 	assert.Equal(t, "https://wave-pay.test", wave.Config().BaseRedirectURL)
 	assert.Equal(t, 15, wave.Config().TimeoutSeconds)
+
+	miniApp, err := manager.WavePayMiniApp()
+	require.NoError(t, err)
+	assert.Equal(t, wavepayminiapp.Config{ClientID: "m-client", ClientSecret: "m-secret", MiniAppID: "m-app", SecretKey: "m-key", TimeoutSeconds: 15, BaseURL: "https://preprodnewapi.wavemoney.io"}, miniApp.Config())
 
 	aya, err := manager.AyaPay()
 	require.NoError(t, err)
@@ -193,11 +218,12 @@ func TestMissingCredentialsAreNotCached(t *testing.T) {
 	manager := newManager(t, config, nil, nil)
 
 	tests := map[string]func() error{
-		"kbz_pay":      func() error { _, err := manager.KbzPay(); return err },
-		"wave_pay":     func() error { _, err := manager.WavePay(); return err },
-		"aya_pay":      func() error { _, err := manager.AyaPay(); return err },
-		"yoma_mmqr":    func() error { _, err := manager.YomaMmqr(); return err },
-		"cyber_source": func() error { _, err := manager.CyberSource(); return err },
+		"kbz_pay":           func() error { _, err := manager.KbzPay(); return err },
+		"wave_pay":          func() error { _, err := manager.WavePay(); return err },
+		"wave_pay_mini_app": func() error { _, err := manager.WavePayMiniApp(); return err },
+		"aya_pay":           func() error { _, err := manager.AyaPay(); return err },
+		"yoma_mmqr":         func() error { _, err := manager.YomaMmqr(); return err },
+		"cyber_source":      func() error { _, err := manager.CyberSource(); return err },
 	}
 	for gateway, build := range tests {
 		var configurationError *myanmarpayments.ConfigurationError

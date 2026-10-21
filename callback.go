@@ -56,6 +56,37 @@ func CallbackRequestFromContext(ctx http.Context) (*myanmarpayments.CallbackRequ
 	return request, nil
 }
 
+// CallbackURLFromContext returns the URL of the current request without its query
+// string: scheme, host and path, e.g. "https://shop.test/payments/callback/wave-pay-mini-app".
+// It is the callback URL HandleCallbackFromContext verifies Wave Pay Mini App
+// callbacks against, so sign payments with this same URL.
+//
+// The scheme is https when the connection used TLS and http otherwise, and the host
+// is the request's Host header. X-Forwarded-Proto and X-Forwarded-Host are not read,
+// like the rest of this package, which builds absolute URLs from configuration:
+// behind a proxy that changes either, call WavePayMiniApp().HandleCallback(request,
+// callbackURL) with the public URL instead. An empty string means ctx has no request.
+func CallbackURLFromContext(ctx http.Context) string {
+	if ctx == nil || ctx.Request() == nil || ctx.Request().Origin() == nil {
+		return ""
+	}
+	origin := ctx.Request().Origin()
+	scheme := "http"
+	if origin.TLS != nil {
+		scheme = "https"
+	}
+	host := origin.Host
+	if host == "" && origin.URL != nil {
+		host = origin.URL.Host
+	}
+	path := ""
+	if origin.URL != nil {
+		path = origin.URL.EscapedPath()
+	}
+
+	return scheme + "://" + host + path
+}
+
 // Acknowledge returns the response the gateway expects after it delivers callback
 // (status, body and headers of callback.Acknowledgement, e.g. KBZ Pay's plain
 // "success"), so it stops retrying. A nil callback sends an empty 200.

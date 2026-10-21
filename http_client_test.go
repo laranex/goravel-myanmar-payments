@@ -14,6 +14,7 @@ import (
 	"github.com/laranex/go-myanmar-payments/v4/ayapay"
 	"github.com/laranex/go-myanmar-payments/v4/kbzpay"
 	"github.com/laranex/go-myanmar-payments/v4/wavepay"
+	"github.com/laranex/go-myanmar-payments/v4/wavepayminiapp"
 	"github.com/laranex/go-myanmar-payments/v4/yomammqr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -133,6 +134,64 @@ func TestYomaTokensAreSharedThroughTheGoravelCache(t *testing.T) {
 	assert.True(t, factory.AssertSent(func(request contractsclient.Request) bool {
 		return request.Header("Authorization") == "Bearer token-1"
 	}))
+}
+
+func TestWavePayMiniAppTokensAreSharedThroughTheGoravelCache(t *testing.T) {
+	config := newConfig(t, map[string]any{ConfigKey: credentials("https://gateway.test")})
+	factory := newHTTPFactory(t, config)
+	factory.Fake(map[string]any{
+		"https://gateway.test/mini-app/auth/v1/external-utility/token": factory.Response().Json(200, map[string]any{"token_type": "Bearer", "access_token": "mini-token", "expires_in": 3600}),
+	}).PreventStrayRequests()
+	t.Cleanup(factory.Reset)
+
+	memory := newMemoryCache(t, config)
+	build := func() *wavepayminiapp.Gateway {
+		manager, err := NewManager(Options{Config: config, HTTPClient: NewHTTPClient(factory, "", time.Second), TokenCache: NewTokenCache(memory)})
+		require.NoError(t, err)
+		miniApp, err := manager.WavePayMiniApp()
+		require.NoError(t, err)
+		return miniApp
+	}
+
+	first, second := build(), build()
+	token, err := first.AccessToken(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, "mini-token", token)
+	token, err = second.AccessToken(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, "mini-token", token)
+
+	assert.True(t, factory.AssertSentCount(1), "one token request for both gateways")
+	assert.True(t, factory.AssertSent(func(request contractsclient.Request) bool {
+		return request.Method() == nethttp.MethodPost &&
+			request.Header("Content-Type") == "application/x-www-form-urlencoded" &&
+			request.Body() == "client_id=mini-client&client_secret=mini-client-secret&grant_type=client_credentials"
+	}))
+
+	second.ForgetToken()
+	_, err = first.AccessToken(context.Background())
+	require.NoError(t, err)
+	assert.True(t, factory.AssertSentCount(2), "ForgetToken drops the shared token")
+}
+
+func TestWavePayMiniAppPaymentIsSignedWithoutARequest(t *testing.T) {
+	config := newConfig(t, map[string]any{ConfigKey: credentials("https://gateway.test")})
+	factory := newHTTPFactory(t, config)
+	factory.Fake(nil).PreventStrayRequests()
+	t.Cleanup(factory.Reset)
+	miniApp, err := newManager(t, config, factory, nil).WavePayMiniApp()
+	require.NoError(t, err)
+
+	payment, err := miniApp.Payment(&wavepayminiapp.PaymentData{
+		OrderID:             "ORDER123",
+		CallbackURL:         "https://shop.test/payments/callback/wave-pay-mini-app",
+		Items:               []wavepayminiapp.Item{{Name: "Ticket", Amount: myanmarpayments.Kyat(5000)}},
+		MerchantReferenceID: "MERCHANT789",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, hmacHex("mini-secret", "5000ORDER123MINI456MERCHANT789https://shop.test/payments/callback/wave-pay-mini-app"), payment.HashValue)
+	assert.JSONEq(t, `{"amount":5000,"miniAppID":"MINI456","merchantRefID":"MERCHANT789","orderID":"ORDER123","callBackUrl":"https://shop.test/payments/callback/wave-pay-mini-app","hashValue":"`+payment.HashValue+`","items":[{"name":"Ticket","amount":5000}]}`, payment.JSON())
+	assert.True(t, factory.AssertNothingSent())
 }
 
 func TestHTTPClientWithoutAGoravelFactoryUsesAPlainClient(t *testing.T) {

@@ -4,7 +4,7 @@
 [![Tests](https://github.com/laranex/goravel-myanmar-payments/actions/workflows/tests.yml/badge.svg)](https://github.com/laranex/goravel-myanmar-payments/actions/workflows/tests.yml)
 [![License](https://img.shields.io/github/license/laranex/goravel-myanmar-payments.svg?style=flat-square)](LICENSE.md)
 
-Goravel integration for Myanmar payment gateways: KBZ Pay, Wave Pay, AYA Pay, Yoma MMQR and CyberSource. Built on Go Myanmar Payments. Facade and config, verified callbacks and test fakes. Built for humans and AI agents.
+Goravel integration for Myanmar payment gateways: KBZ Pay, Wave Pay, Wave Pay Mini App, AYA Pay, Yoma MMQR and CyberSource. Built on Go Myanmar Payments. Facade and config, verified callbacks and test fakes. Built for humans and AI agents.
 
 ## Why Goravel Myanmar Payments
 
@@ -44,10 +44,11 @@ The full documentation lives at **[laranex.vercel.app/goravel-myanmar-payments](
 - [Testing](https://laranex.vercel.app/goravel-myanmar-payments/testing): Goravel's HTTP client fakes, signed callbacks, callbacks you build yourself and following form links
 - [KBZ Pay](https://laranex.vercel.app/goravel-myanmar-payments/drivers/kbz-pay): PWA redirect, QR and in-app payments, status checks and callbacks
 - [Wave Pay](https://laranex.vercel.app/goravel-myanmar-payments/drivers/wave-pay): redirect payments with line items and callbacks
+- [Wave Pay Mini App](https://laranex.vercel.app/goravel-myanmar-payments/drivers/wave-pay-mini-app): payments inside the WavePay app with Wave's JavaScript SDK: access tokens, signed payment payloads and callbacks
 - [AYA Pay](https://laranex.vercel.app/goravel-myanmar-payments/drivers/aya-pay): the AYA Payment Gateway hosted checkout, channel discovery, status checks and callbacks
 - [Yoma MMQR](https://laranex.vercel.app/goravel-myanmar-payments/drivers/yoma-mmqr): QR images, QR renewal, status checks and callbacks
 - [CyberSource](https://laranex.vercel.app/goravel-myanmar-payments/drivers/cyber-source): Secure Acceptance card payments with a signed hosted checkout form
-- [Results](https://laranex.vercel.app/goravel-myanmar-payments/references/results): every field of `RedirectPayment`, `FormPayment`, `QrPayment` and `AppPayment`
+- [Results](https://laranex.vercel.app/goravel-myanmar-payments/references/results): every field of `RedirectPayment`, `FormPayment`, `QrPayment`, `AppPayment` and `MiniAppPayment`
 - [PaymentCallback & Status](https://laranex.vercel.app/goravel-myanmar-payments/references/payment-callback): every field of `PaymentCallback`, `PaymentStatusResult` and `PaymentStatus`
 - [Errors](https://laranex.vercel.app/goravel-myanmar-payments/references/errors): validation, API, signature and configuration errors
 

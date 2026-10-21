@@ -12,6 +12,7 @@ import (
 	"github.com/laranex/go-myanmar-payments/v4/cybersource"
 	"github.com/laranex/go-myanmar-payments/v4/kbzpay"
 	"github.com/laranex/go-myanmar-payments/v4/wavepay"
+	"github.com/laranex/go-myanmar-payments/v4/wavepayminiapp"
 	"github.com/laranex/go-myanmar-payments/v4/yomammqr"
 )
 
@@ -22,7 +23,7 @@ type Options struct {
 	Config config.Config
 	// HTTPClient sends gateway requests; nil uses the SDK's default client.
 	HTTPClient myanmarpayments.HTTPDoer
-	// TokenCache keeps Yoma MMQR access tokens; nil uses the SDK's in-memory cache.
+	// TokenCache keeps Yoma MMQR and Wave Pay Mini App access tokens; nil uses the SDK's in-memory cache.
 	TokenCache myanmarpayments.TokenCache
 	// Crypt encrypts the auto-submit form links; nil disables AutoSubmitURL.
 	Crypt crypt.Crypt
@@ -43,6 +44,7 @@ type Manager struct {
 	mu          sync.Mutex
 	kbzPay      *kbzpay.Gateway
 	wavePay     *wavepay.Gateway
+	miniApp     *wavepayminiapp.Gateway
 	ayaPay      *ayapay.Gateway
 	yomaMmqr    *yomammqr.Gateway
 	cyberSource *cybersource.Gateway
@@ -79,6 +81,16 @@ func (m *Manager) KbzPay() (*kbzpay.Gateway, error) {
 func (m *Manager) WavePay() (*wavepay.Gateway, error) {
 	return lazy(&m.mu, &m.wavePay, func() (*wavepay.Gateway, error) {
 		return wavepay.New(wavepay.ConfigFromEnv(m.settings.Getenv), m.httpClient)
+	})
+}
+
+// WavePayMiniApp returns the Wave Pay Mini App gateway: AccessToken, Payment,
+// HandleCallback and ForgetToken. Its access tokens live in the configured cache
+// store. Its HandleCallback takes the callback URL the payment was signed with;
+// HandleCallbackFromContext passes the URL the callback was posted to.
+func (m *Manager) WavePayMiniApp() (*wavepayminiapp.Gateway, error) {
+	return lazy(&m.mu, &m.miniApp, func() (*wavepayminiapp.Gateway, error) {
+		return wavepayminiapp.New(wavepayminiapp.ConfigFromEnv(m.settings.Getenv), m.httpClient, m.tokenCache)
 	})
 }
 

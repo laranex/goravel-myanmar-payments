@@ -7,7 +7,8 @@ import (
 )
 
 // TokenCache is a myanmarpayments.TokenCache backed by a Goravel cache store, so
-// Yoma MMQR access tokens are shared by every process using the same store.
+// Yoma MMQR and Wave Pay Mini App access tokens are shared by every process using
+// the same store.
 type TokenCache struct {
 	store cache.Driver
 }

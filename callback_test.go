@@ -103,6 +103,18 @@ func waveCallbackBody(t *testing.T) string {
 	return mustJSON(t, payload)
 }
 
+// miniAppCallbackBody is a Wave Pay Mini App callback signed for callbackURL with the
+// credentials' secret key and mini app id.
+func miniAppCallbackBody(t *testing.T, callbackURL, status string) string {
+	payload := map[string]any{
+		"merchantRefId": "MERCHANT789", "orderId": "ORDER123", "amount": 5000, "msisdn": "9791009039",
+		"transactionId": "TXN-1", "transactionStatus": status,
+	}
+	payload["hashValue"] = hmacHex("mini-secret", "5000ORDER123MINI456MERCHANT789"+callbackURL)
+
+	return mustJSON(t, payload)
+}
+
 func ayaSignedValues(statusCode string) url.Values {
 	payload := `{"merchOrderId":"ORD123456","tranId":"TRN0001","amount":"1000","currenyCode":"104","statusCode":"` + statusCode + `","dateTime":"2026-10-07 10:00:00"}`
 	return url.Values{
@@ -308,4 +320,31 @@ func TestCallbackRequestCapsTheBody(t *testing.T) {
 	assert.Equal(t, []int{MaxCallbackBodyBytes}, bodies)
 	assert.ErrorIs(t, errs[1], ErrCallbackBodyTooLarge)
 	assert.ErrorIs(t, errs[2], ErrCallbackBodyTooLarge)
+}
+
+func TestCallbackURLFromContext(t *testing.T) {
+	config := newConfig(t, nil)
+	server := newTestServer(config)
+	var urls []string
+	server.router.Post("/payments/callback/{gateway}", func(ctx contractshttp.Context) contractshttp.Response {
+		urls = append(urls, CallbackURLFromContext(ctx))
+
+		return ctx.Response().String(nethttp.StatusOK, "")
+	})
+
+	server.do(t, nethttp.MethodPost, "/payments/callback/wave-pay-mini-app?order=1", "application/json", "{}")
+	server.do(t, nethttp.MethodPost, "https://shop.test:8443/payments/callback/wave-pay-mini-app", "application/json", "{}")
+
+	request := httptest.NewRequest(nethttp.MethodPost, "/payments/callback/wave-pay-mini-app", strings.NewReader("{}"))
+	request.Header.Set("X-Forwarded-Proto", "https")
+	request.Header.Set("X-Forwarded-Host", "public.test")
+	server.engine.ServeHTTP(httptest.NewRecorder(), request)
+
+	assert.Equal(t, []string{
+		"http://example.com/payments/callback/wave-pay-mini-app",
+		"https://shop.test:8443/payments/callback/wave-pay-mini-app",
+		"http://example.com/payments/callback/wave-pay-mini-app",
+	}, urls, "no query string; forwarded headers are not read")
+
+	assert.Equal(t, "", CallbackURLFromContext(nil))
 }
