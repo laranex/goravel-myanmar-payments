@@ -103,7 +103,7 @@ func TestResolveFormPaymentKeepsEveryField(t *testing.T) {
 	server := newFormServer(t, nil)
 	cyber, err := server.manager.CyberSource()
 	require.NoError(t, err)
-	form, err := cyber.Initiate(cybersource.PaymentData{
+	form, err := cyber.HostedCheckout(cybersource.PaymentData{
 		OrderID: "ORD-1", Amount: myanmarpayments.Kyat(1000), CallbackURL: "https://shop.test/callback",
 		Currency: "MMK", TransactionType: cybersource.Sale, Locale: "en-us",
 		ReturnURL: "https://shop.test/done", CancelURL: "https://shop.test/cancel",

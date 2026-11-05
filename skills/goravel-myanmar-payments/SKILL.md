@@ -114,7 +114,7 @@ return ctx.Response().Json(http.StatusOK, map[string]any{"token": token, "paymen
 
 ### Form payments (AYA Pay, CyberSource)
 
-`AyaPay().Initiate()` and `CyberSource().Initiate()` return a `*myanmarpayments.FormPayment` the customer's browser must POST. Redirect to `payments.AutoSubmitURL(form)`: a link to the package's `GET myanmar-payments/form` route, encrypted with `APP_KEY` and valid for `form_route.ttl_minutes` (`MYANMAR_PAYMENTS_FORM_TTL_MINUTES`, required: missing returns `The form_route configuration is missing [ttl_minutes].`); a tampered or expired link answers 410. The page is sent with `Cache-Control: no-store` and `Referrer-Policy: strict-origin`, so the gateway never sees the encrypted link. Under a nonce-based Content-Security-Policy, set `form_route.nonce` to a `func(contractshttp.Context) string` returning the request's nonce; the page then renders `form.HTMLWithNonce(nonce)`. Or send `form.HTML()` yourself.
+`AyaPay().Initiate()` and `CyberSource().HostedCheckout()` return a `*myanmarpayments.FormPayment` the customer's browser must POST. Redirect to `payments.AutoSubmitURL(form)`: a link to the package's `GET myanmar-payments/form` route, encrypted with `APP_KEY` and valid for `form_route.ttl_minutes` (`MYANMAR_PAYMENTS_FORM_TTL_MINUTES`, required: missing returns `The form_route configuration is missing [ttl_minutes].`); a tampered or expired link answers 410. The page is sent with `Cache-Control: no-store` and `Referrer-Policy: strict-origin`, so the gateway never sees the encrypted link. Under a nonce-based Content-Security-Policy, set `form_route.nonce` to a `func(contractshttp.Context) string` returning the request's nonce; the page then renders `form.HTMLWithNonce(nonce)`. Or send `form.HTML()` yourself.
 
 AYA Pay needs a channel: list them with `aya.Services(ctx)`, then:
 
@@ -143,9 +143,9 @@ link, err := payments.AutoSubmitURL(form)
 return ctx.Response().Redirect(http.StatusFound, link)
 ```
 
-CyberSource's `cybersource.PaymentData` also needs `Currency` (e.g. `"MMK"`), `TransactionType` (e.g. `cybersource.Sale`) and `Locale` (e.g. `"en-us"`); there are no defaults.
+CyberSource's `cybersource.PaymentData` also needs `Currency` (e.g. `"MMK"`), `TransactionType` (e.g. `cybersource.Sale`) and `Locale` (e.g. `"en-us"`); there are no defaults. `OrderID` is at most 40 characters; an unset `ReturnURL` or `CancelURL` is left out of the form.
 
-`Initiate()` never needs the form route; `AutoSubmitURL` checks, in order: the route is on (`payments.ErrFormRouteDisabled`), `ttl_minutes` is set (`*myanmarpayments.ConfigurationError`), the crypt facade exists (`payments.ErrCryptNotAvailable`).
+`Initiate()` and `HostedCheckout()` never need the form route; `AutoSubmitURL` checks, in order: the route is on (`payments.ErrFormRouteDisabled`), `ttl_minutes` is set (`*myanmarpayments.ConfigurationError`), the crypt facade exists (`payments.ErrCryptNotAvailable`).
 
 ### Handle the callback
 

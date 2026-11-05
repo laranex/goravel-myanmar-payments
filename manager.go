@@ -110,8 +110,9 @@ func (m *Manager) YomaMmqr() (*yomammqr.Gateway, error) {
 	})
 }
 
-// CyberSource returns the CyberSource Secure Acceptance gateway: Initiate and
-// HandleCallback. Pass the form Initiate returns to AutoSubmitURL.
+// CyberSource returns the CyberSource Secure Acceptance Hosted Checkout gateway:
+// HostedCheckout and HandleCallback. Pass the form HostedCheckout returns to
+// AutoSubmitURL.
 func (m *Manager) CyberSource() (*cybersource.Gateway, error) {
 	return lazy(&m.mu, &m.cyberSource, func() (*cybersource.Gateway, error) {
 		return cybersource.New(cybersource.ConfigFromEnv(m.settings.Getenv))

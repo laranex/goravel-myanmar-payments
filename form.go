@@ -46,7 +46,7 @@ type formField struct {
 // order: a disabled route returns ErrFormRouteDisabled, a missing or invalid TTL a
 // *myanmarpayments.ConfigurationError, and a missing crypt facade ErrCryptNotAvailable.
 //
-// AYA Pay and CyberSource return a *myanmarpayments.FormPayment from Initiate; the Go
+// AYA Pay (Initiate) and CyberSource (HostedCheckout) return a *myanmarpayments.FormPayment; the Go
 // SDK has no auto-submit URL of its own, so this package adds it.
 func (m *Manager) AutoSubmitURL(form *myanmarpayments.FormPayment) (string, error) {
 	if form == nil {
