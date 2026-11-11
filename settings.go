@@ -45,7 +45,7 @@ var envKeys = map[string]string{
 
 	"WAVE_PAY_MINI_APP_CLIENT_ID":     "wave_pay_mini_app.client_id",
 	"WAVE_PAY_MINI_APP_CLIENT_SECRET": "wave_pay_mini_app.client_secret",
-	"WAVE_PAY_MINI_APP_MINI_APP_ID":   "wave_pay_mini_app.mini_app_id",
+	"WAVE_PAY_MINI_APP_APP_ID":        "wave_pay_mini_app.mini_app_id",
 	"WAVE_PAY_MINI_APP_SECRET_KEY":    "wave_pay_mini_app.secret_key",
 	"WAVE_PAY_MINI_APP_BASE_URL":      "wave_pay_mini_app.base_url",
 

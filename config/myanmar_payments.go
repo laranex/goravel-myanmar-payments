@@ -35,7 +35,7 @@ func init() {
 		"wave_pay_mini_app": map[string]any{
 			"client_id":     config.Env("WAVE_PAY_MINI_APP_CLIENT_ID", ""),
 			"client_secret": config.Env("WAVE_PAY_MINI_APP_CLIENT_SECRET", ""),
-			"mini_app_id":   config.Env("WAVE_PAY_MINI_APP_MINI_APP_ID", ""),
+			"mini_app_id":   config.Env("WAVE_PAY_MINI_APP_APP_ID", ""),
 			"secret_key":    config.Env("WAVE_PAY_MINI_APP_SECRET_KEY", ""),
 			"base_url":      config.Env("WAVE_PAY_MINI_APP_BASE_URL", ""),
 		},

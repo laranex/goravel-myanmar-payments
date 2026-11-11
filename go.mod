@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/goravel/framework v1.18.0
 	github.com/goravel/gin v1.18.0
-	github.com/laranex/go-myanmar-payments/v4 v4.0.0-alpha.20
+	github.com/laranex/go-myanmar-payments/v4 v4.0.0-alpha.21
 	github.com/stretchr/testify v1.11.1
 )
 
